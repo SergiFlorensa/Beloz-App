@@ -18,6 +18,7 @@ import com.app.beloz.ui.components.TablaPaises
 import com.app.beloz.ui.components.MenuFiltros
 import com.app.beloz.ui.components.RestaurantesPopulares
 import com.app.beloz.ui.components.TopBar
+import com.app.beloz.ui.components.SugerenciasContextualesSection
 import com.app.beloz.ui.viewModel.CartViewModel
 import com.app.beloz.ui.viewModel.RestaurantesViewModel
 
@@ -44,6 +45,8 @@ fun PagPrincipal(navController: NavController,cartViewModel: CartViewModel) {
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
                 MenuFiltros(navController = navController)
+                Spacer(modifier = Modifier.height(16.dp))
+                SugerenciasContextualesSection()
                 Spacer(modifier = Modifier.height(16.dp))
                 EstablecimientoSection(navController = navController)
                 Spacer(modifier = Modifier.height(16.dp))

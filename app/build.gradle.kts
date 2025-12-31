@@ -1,9 +1,17 @@
+import java.util.Properties
+
 plugins {
     id("com.android.application")
     id("org.jetbrains.kotlin.android")
     id("kotlin-kapt")
     //id("com.google.dagger.hilt.android")
 }
+
+val localProperties = Properties().apply {
+    val file = rootProject.file("local.properties")
+    if (file.exists()) file.inputStream().use { load(it) }
+}
+val openWeatherApiKey = localProperties.getProperty("OPENWEATHER_API_KEY", "")
 
 android {
     namespace = "com.app.beloz"
@@ -20,6 +28,8 @@ android {
         vectorDrawables {
             useSupportLibrary = true
         }
+
+        buildConfigField("String", "OPENWEATHER_API_KEY", ""${openWeatherApiKey}"")
     }
 
     buildTypes {
@@ -57,6 +67,11 @@ android {
 }
 
 dependencies {
+    // 1. Para la IA de escaneo de ingredientes (ML Kit - Gratis y Local)
+    implementation ("com.google.mlkit:object-detection:17.0.0")
+
+    // 2. Para detectar si el usuario camina o va en coche (Awareness API)
+    implementation ("com.google.android.gms:play-services-awareness:19.0.1")
 
     implementation ("androidx.compose.runtime:runtime-livedata:1.7.4")
 
@@ -107,4 +122,5 @@ dependencies {
 
     debugImplementation("androidx.compose.ui:ui-tooling")
     debugImplementation("androidx.compose.ui:ui-test-manifest")
+
 }

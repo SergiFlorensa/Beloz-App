@@ -11,9 +11,13 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
+import com.app.beloz.innovacion.perfil.EventoUso
+import com.app.beloz.innovacion.perfil.PerfilSaborRepository
+import com.app.beloz.innovacion.perfil.TipoEvento
 import com.app.beloz.ui.components.RestauranteCard
 import com.app.beloz.ui.viewModel.RestaurantesViewModel
 
@@ -24,6 +28,9 @@ fun ListaRestaurantes(
     searchQuery: String,
 ) {
     val viewModel: RestaurantesViewModel = viewModel()
+    val context = LocalContext.current
+    val perfilRepo = remember { PerfilSaborRepository(context) }
+    val scope = rememberCoroutineScope()
 
     val restaurantes by viewModel.restaurantes.collectAsState(initial = emptyList())
 
@@ -93,6 +100,19 @@ fun ListaRestaurantes(
                             valoracion = restaurante.valoracion,
                             relevancia = restaurante.relevancia,
                             onClick = {
+                                scope.launch {
+                                    perfilRepo.registrarEvento(
+                                        EventoUso(
+                                            tipo = TipoEvento.VIEW_RESTAURANT,
+                                            metadata = mapOf(
+                                                "restaurant_id" to restaurante.restauranteId.toString(),
+                                                "food_type" to restaurante.typeOfFood,
+                                                "price_level" to restaurante.priceLevel,
+                                                "country" to restaurante.country
+                                            )
+                                        )
+                                    )
+                                }
                                 navController.navigate("platos_restaurante/${restaurante.restauranteId}")
                             }
                         )

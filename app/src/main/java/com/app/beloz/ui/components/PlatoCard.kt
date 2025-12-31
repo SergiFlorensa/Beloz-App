@@ -20,6 +20,7 @@ import androidx.compose.ui.unit.sp
 import coil.compose.AsyncImagePainter
 import coil.compose.rememberAsyncImagePainter
 import com.app.beloz.R
+import com.app.beloz.data.remote.ImageUrlResolver
 import com.app.beloz.theme.DanfordFontFamily
 
 @Composable
@@ -46,7 +47,7 @@ fun PlatoCard(
             modifier = Modifier.padding(16.dp)
         ) {
             val painter = rememberAsyncImagePainter(
-                model = imagePath?.let { "https://beloz-production.up.railway.app/images/$it" }
+                model = ImageUrlResolver.resolve(imagePath)
             )
             val painterState = painter.state
 

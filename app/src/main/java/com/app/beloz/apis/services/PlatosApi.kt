@@ -5,6 +5,10 @@ import retrofit2.http.GET
 import retrofit2.http.Query
 
 interface PlatosApi {
-    @GET("api/platos")
-    suspend fun getPlatosPorRestaurante(@Query("restauranteId") restauranteId: Int): List<Plato>
+    @GET("platos")
+    suspend fun getPlatos(
+        @Query("select") select: String = "*",
+        @Query("restaurante_id") restauranteId: String? = null,
+        @Query("order") order: String? = null
+    ): List<Plato>
 }

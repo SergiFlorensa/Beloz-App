@@ -15,6 +15,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import coil.compose.rememberAsyncImagePainter
 import coil.compose.AsyncImagePainter
+import com.app.beloz.data.remote.ImageUrlResolver
 
 @Composable
 fun RestauranteCard(
@@ -41,7 +42,7 @@ fun RestauranteCard(
             modifier = Modifier.padding(16.dp)
         ) {
             val painter = rememberAsyncImagePainter(
-                model = imagePath?.let { "https://beloz-production.up.railway.app/images/$it" }
+                model = ImageUrlResolver.resolve(imagePath)
             )
             val painterState = painter.state
 

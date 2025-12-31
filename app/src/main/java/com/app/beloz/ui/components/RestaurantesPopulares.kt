@@ -10,12 +10,17 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import com.app.beloz.data.models.Restaurante
 import com.app.beloz.data.repositories.RestauranteRepository
+import com.app.beloz.data.remote.ImageUrlResolver
+import com.app.beloz.innovacion.perfil.EventoUso
+import com.app.beloz.innovacion.perfil.PerfilSaborRepository
+import com.app.beloz.innovacion.perfil.TipoEvento
 import com.app.beloz.theme.DanfordFontFamily
 
 @Composable
@@ -23,6 +28,9 @@ fun RestaurantesPopulares(navController: NavController) {
     var restaurantes by remember { mutableStateOf<List<Restaurante>>(emptyList()) }
     var isLoading by remember { mutableStateOf(true) }
     var errorMessage by remember { mutableStateOf<String?>(null) }
+    val context = LocalContext.current
+    val perfilRepo = remember { PerfilSaborRepository(context) }
+    val scope = rememberCoroutineScope()
 
     LaunchedEffect(Unit) {
         isLoading = true
@@ -76,9 +84,22 @@ fun RestaurantesPopulares(navController: NavController) {
                 ) {
                     items(restaurantes.filter { it.esPopular }) { restaurant ->
                         RestaurantePopularItem(
-                            imageUrl = "https://beloz-production.up.railway.app/images/${restaurant.logoRestaurante ?: "default.png"}",
+                            imageUrl = ImageUrlResolver.resolve(restaurant.logoRestaurante) ?: "",
                             restaurantId = restaurant.restauranteId,
                             onClick = {
+                                scope.launch {
+                                    perfilRepo.registrarEvento(
+                                        EventoUso(
+                                            tipo = TipoEvento.VIEW_RESTAURANT,
+                                            metadata = mapOf(
+                                                "restaurant_id" to restaurant.restauranteId.toString(),
+                                                "food_type" to restaurant.typeOfFood,
+                                                "price_level" to restaurant.priceLevel,
+                                                "country" to restaurant.country
+                                            )
+                                        )
+                                    )
+                                }
                                 navController.navigate("platos_restaurante/${restaurant.restauranteId}")
                             }
                         )

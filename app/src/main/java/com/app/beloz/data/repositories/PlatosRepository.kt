@@ -5,8 +5,7 @@ import com.app.beloz.apis.services.PlatosService
 import com.app.beloz.data.models.Plato
 
 object PlatosRepository {
-    private const val baseUrl = "https://beloz-production.up.railway.app"
-    private val platosService = PlatosService(baseUrl)
+    private val platosService = PlatosService()
 
     suspend fun getPlatosPorRestaurante(restauranteId: Int): List<Plato> {
         return platosService.getPlatosPorRestaurante(restauranteId)

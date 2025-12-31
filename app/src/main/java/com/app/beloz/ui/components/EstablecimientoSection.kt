@@ -13,6 +13,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
@@ -23,12 +24,18 @@ import coil.compose.rememberImagePainter
 import com.app.beloz.theme.DanfordFontFamily
 import com.app.beloz.data.models.Restaurante
 import com.app.beloz.data.repositories.RestauranteRepository
+import com.app.beloz.data.remote.ImageUrlResolver
+import com.app.beloz.innovacion.perfil.EventoUso
+import com.app.beloz.innovacion.perfil.PerfilSaborRepository
+import com.app.beloz.innovacion.perfil.TipoEvento
 import kotlinx.coroutines.launch
 
 @Composable
 fun EstablecimientoSection(navController: NavController) {
     val coroutineScope = rememberCoroutineScope()
     val restaurants = remember { mutableStateOf<List<Restaurante>>(emptyList()) }
+    val context = LocalContext.current
+    val perfilRepo = remember { PerfilSaborRepository(context) }
 
     LaunchedEffect(Unit) {
         coroutineScope.launch {
@@ -81,6 +88,19 @@ fun EstablecimientoSection(navController: NavController) {
                 HorizontalItem(
                     restaurant = restaurant,
                     onClick = {
+                        coroutineScope.launch {
+                            perfilRepo.registrarEvento(
+                                EventoUso(
+                                    tipo = TipoEvento.VIEW_RESTAURANT,
+                                    metadata = mapOf(
+                                        "restaurant_id" to restaurant.restauranteId.toString(),
+                                        "food_type" to restaurant.typeOfFood,
+                                        "price_level" to restaurant.priceLevel,
+                                        "country" to restaurant.country
+                                    )
+                                )
+                            )
+                        }
                         navController.navigate("platos_restaurante/${restaurant.restauranteId}")
                     }
                 )
@@ -91,8 +111,7 @@ fun EstablecimientoSection(navController: NavController) {
 
 @Composable
 fun HorizontalItem(restaurant: Restaurante, onClick: () -> Unit) {
-    val baseUrl = "https://beloz-production.up.railway.app/images/"
-    val fullImagePath = baseUrl + (restaurant.imagePath ?: "images/default.png")
+    val fullImagePath = ImageUrlResolver.resolve(restaurant.imagePath) ?: ""
 
     Card(
         modifier = Modifier

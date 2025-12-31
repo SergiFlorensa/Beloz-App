@@ -13,8 +13,12 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
+import com.app.beloz.innovacion.perfil.EventoUso
+import com.app.beloz.innovacion.perfil.PerfilSaborRepository
+import com.app.beloz.innovacion.perfil.TipoEvento
 import com.app.beloz.ui.components.MainScaffold
 import com.app.beloz.ui.components.PlatoCard
 import com.app.beloz.ui.viewModel.CartViewModel
@@ -31,6 +35,9 @@ fun PlatosRestaurante(
 ) {
     val platos by viewModel.platos.collectAsState()
     val carrito by cartViewModel.carrito.collectAsState()
+    val context = LocalContext.current
+    val perfilRepo = remember { PerfilSaborRepository(context) }
+    val scope = rememberCoroutineScope()
 
     LaunchedEffect(restauranteId) {
         viewModel.cargarPlatosPorRestaurante(restauranteId)
@@ -93,6 +100,20 @@ fun PlatosRestaurante(
                                 if (!added) {
                                     dialogMessage = "Solo puedes añadir platos de un mismo restaurante al carrito."
                                     showDialog = true
+                                } else {
+                                    scope.launch {
+                                        perfilRepo.registrarEvento(
+                                            EventoUso(
+                                                tipo = TipoEvento.ADD_TO_CART,
+                                                metadata = mapOf(
+                                                    "restaurant_id" to restauranteId.toString(),
+                                                    "plato_id" to plato.id.toString(),
+                                                    "price" to plato.price.toString(),
+                                                    "quantity" to quantity.toString()
+                                                )
+                                            )
+                                        )
+                                    }
                                 }
                             },
                             onClick = {}

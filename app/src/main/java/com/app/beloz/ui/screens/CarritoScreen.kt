@@ -12,10 +12,14 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
+import com.app.beloz.innovacion.perfil.EventoUso
+import com.app.beloz.innovacion.perfil.PerfilSaborRepository
+import com.app.beloz.innovacion.perfil.TipoEvento
 import com.app.beloz.ui.viewModel.CartViewModel
 import com.app.beloz.ui.viewModel.AuthViewModel
 import com.app.beloz.ui.viewModel.PaymentViewModel
@@ -33,6 +37,9 @@ fun CarritoScreen(
     var showConfirmDialog by remember { mutableStateOf(false) }
     var showSuccessDialog by remember { mutableStateOf(false) }
     var errorMessage by remember { mutableStateOf("") }
+    val context = LocalContext.current
+    val perfilRepo = remember { PerfilSaborRepository(context) }
+    val scope = rememberCoroutineScope()
 
     cartViewModel.currentUser = authViewModel.user
     LaunchedEffect(carrito) {
@@ -162,9 +169,32 @@ fun CarritoScreen(
                 onDismissRequest = { showConfirmDialog = false },
                 confirmButton = {
                     TextButton(onClick = {
+                        val itemCount = carrito.sumOf { it.second }
+                        scope.launch {
+                            perfilRepo.registrarEvento(
+                                EventoUso(
+                                    tipo = TipoEvento.CHECKOUT,
+                                    metadata = mapOf(
+                                        "total_price" to totalPrice.toString(),
+                                        "item_count" to itemCount.toString()
+                                    )
+                                )
+                            )
+                        }
                         cartViewModel.confirmPurchase(
                             onSuccess = {
                                 showConfirmDialog = false
+                                scope.launch {
+                                    perfilRepo.registrarEvento(
+                                        EventoUso(
+                                            tipo = TipoEvento.PURCHASE,
+                                            metadata = mapOf(
+                                                "total_price" to totalPrice.toString(),
+                                                "item_count" to itemCount.toString()
+                                            )
+                                        )
+                                    )
+                                }
                                 showSuccessDialog = true
                             },
                             onError = { error ->

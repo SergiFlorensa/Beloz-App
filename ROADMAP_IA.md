@@ -116,3 +116,7 @@ Response:
 - Datos pobres: usar cold-start con reglas + popularidad.
 - Privacidad: opt-out y explicaciones visibles.
 - Mantenimiento: separar capas (dominio, datos, UI).
+
+## Estado actual (implementado)
+- DataStore local para eventos y perfil (PerfilSaborRepository).
+- Logging en UI: vistas de restaurantes (lista, populares, intereses), add-to-cart, checkout y compra.

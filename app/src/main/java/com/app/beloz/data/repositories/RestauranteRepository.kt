@@ -5,8 +5,7 @@ import com.app.beloz.data.models.Restaurante
 import retrofit2.HttpException
 
 object RestauranteRepository {
-    private const val baseUrl = "https://beloz-production.up.railway.app"
-    private val restaurantService = RestauranteService(baseUrl)
+    private val restaurantService = RestauranteService()
 
     suspend fun fetchRestaurantes(): List<Restaurante> {
         return restaurantService.fetchRestaurantes()

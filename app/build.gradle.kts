@@ -1,17 +1,9 @@
-import java.util.Properties
-
 plugins {
     id("com.android.application")
     id("org.jetbrains.kotlin.android")
     id("kotlin-kapt")
     //id("com.google.dagger.hilt.android")
 }
-
-val localProperties = Properties().apply {
-    val file = rootProject.file("local.properties")
-    if (file.exists()) file.inputStream().use { load(it) }
-}
-val openWeatherApiKey = localProperties.getProperty("OPENWEATHER_API_KEY", "")
 
 android {
     namespace = "com.app.beloz"
@@ -29,7 +21,6 @@ android {
             useSupportLibrary = true
         }
 
-        buildConfigField("String", "OPENWEATHER_API_KEY", ""${openWeatherApiKey}"")
     }
 
     buildTypes {

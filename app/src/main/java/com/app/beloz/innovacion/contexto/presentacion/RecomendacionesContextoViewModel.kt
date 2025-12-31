@@ -39,7 +39,7 @@ class RecomendacionesContextoViewModel(
                 descripcionClima = construirDescripcionClima(clima),
                 hayClima = clima != null,
                 cargando = false,
-                error = if (clima == null) "Sin datos meteorológicos (configura tu API key)." else null
+                error = if (clima == null) "No se pudo obtener el clima en este momento." else null
             )
         }
     }

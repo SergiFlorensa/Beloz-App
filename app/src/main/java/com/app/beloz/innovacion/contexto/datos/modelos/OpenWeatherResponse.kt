@@ -1,17 +1,12 @@
-﻿package com.app.beloz.innovacion.contexto.datos.modelos
+package com.app.beloz.innovacion.contexto.datos.modelos
 
 import com.google.gson.annotations.SerializedName
 
-data class OpenWeatherResponse(
-    @SerializedName("weather") val weather: List<WeatherDescription>,
-    @SerializedName("main") val main: WeatherMain,
+data class OpenMeteoResponse(
+    @SerializedName("current") val current: CurrentWeather?
 )
 
-data class WeatherDescription(
-    @SerializedName("main") val main: String,
-    @SerializedName("description") val description: String,
-)
-
-data class WeatherMain(
-    @SerializedName("temp") val temperature: Double,
+data class CurrentWeather(
+    @SerializedName("temperature_2m") val temperature: Double?,
+    @SerializedName("weather_code") val weatherCode: Int?
 )

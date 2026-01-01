@@ -7,7 +7,7 @@ data class Pedido(
     val id: Int,
     @SerializedName("user_id")
     val userId: Int,
-    @SerializedName("restaurant_id")
+    @SerializedName(value = "restaurant_id", alternate = ["restaurante_id"])
     val restaurantId: Int,
     @SerializedName("fecha")
     val fecha: String,

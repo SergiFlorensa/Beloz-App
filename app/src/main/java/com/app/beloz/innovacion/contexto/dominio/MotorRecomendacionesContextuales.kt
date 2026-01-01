@@ -1,13 +1,15 @@
 package com.app.beloz.innovacion.contexto.dominio
 
 /**
- * Motor sencillo basado en reglas, preparado para añadir modelos IA posteriormente.
+ * Motor sencillo basado en reglas, preparado para anadir modelos IA posteriormente.
  */
 class MotorRecomendacionesContextuales(
     private val reglas: List<ReglaContextual>
 ) {
     fun generar(contexto: ContextoEntrada): List<SugerenciaContextual> {
-        return reglas.mapNotNull { it.evaluar(contexto) }
+        return reglas
+            .sortedByDescending { it.peso }
+            .mapNotNull { it.evaluar(contexto) }
     }
 
     companion object {
@@ -22,20 +24,26 @@ class MotorRecomendacionesContextuales(
                         SugerenciaContextual(
                             titulo = "Domingo lluvioso = comida reconfortante",
                             descripcion = "Prueba una pizza artesanal o un postre con chocolate caliente.",
-                            etiquetas = listOf("comfort", "sabores intensos")
+                            etiquetas = listOf("comfort", "sabores intensos"),
+                            motivo = "Domingo por la noche y necesitas algo reconfortante."
                         )
-                    }
+                    },
+                    peso = 3
                 ),
                 ReglaContextual(
-                    nombre = "Mediodía ejecutivo",
-                    condicion = { ctx -> ctx.momentoDelDia == MomentoDelDia.MEDIODIA && ctx.tipoDeDia == TipoDeDia.LABORABLE },
+                    nombre = "Mediodia ejecutivo",
+                    condicion = { ctx ->
+                        ctx.momentoDelDia == MomentoDelDia.MEDIODIA && ctx.tipoDeDia == TipoDeDia.LABORABLE
+                    },
                     generar = {
                         SugerenciaContextual(
-                            titulo = "Necesitas energía rápida",
-                            descripcion = "Explora menús ejecutivos o ensaladas proteicas que llegan en <20 min.",
-                            etiquetas = listOf("rápido", "ligero")
+                            titulo = "Necesitas energia rapida",
+                            descripcion = "Explora menus ejecutivos o ensaladas proteicas que llegan en <20 min.",
+                            etiquetas = listOf("rapido", "ligero"),
+                            motivo = "Mediodia laboral con poco tiempo."
                         )
-                    }
+                    },
+                    peso = 2
                 ),
                 ReglaContextual(
                     nombre = "Tarde creativa",
@@ -43,10 +51,12 @@ class MotorRecomendacionesContextuales(
                     generar = {
                         SugerenciaContextual(
                             titulo = "Dale un twist a la merienda",
-                            descripcion = "Combina bowls frutales con cafés de especialidad o bubble tea.",
-                            etiquetas = listOf("snack", "creativo")
+                            descripcion = "Combina bowls frutales con cafes de especialidad o bubble tea.",
+                            etiquetas = listOf("snack", "creativo"),
+                            motivo = "La tarde es ideal para algo ligero y creativo."
                         )
-                    }
+                    },
+                    peso = 1
                 ),
                 ReglaContextual(
                     nombre = "Clima lluvioso",
@@ -54,21 +64,25 @@ class MotorRecomendacionesContextuales(
                     generar = {
                         SugerenciaContextual(
                             titulo = "Que la lluvia no te frene",
-                            descripcion = "Sopas asiáticas, ramen o curry especiado para entrar en calor.",
-                            etiquetas = listOf("caliente", "spicy")
+                            descripcion = "Sopas asiaticas, ramen o curry especiado para entrar en calor.",
+                            etiquetas = listOf("caliente", "spicy"),
+                            motivo = "Se detecto lluvia en tu zona."
                         )
-                    }
+                    },
+                    peso = 4
                 ),
                 ReglaContextual(
-                    nombre = "Frío intenso",
+                    nombre = "Frio intenso",
                     condicion = { ctx -> ctx.clima?.estado == EstadoClima.FRIO },
                     generar = {
                         SugerenciaContextual(
                             titulo = "Activa tu termostato",
                             descripcion = "Guisos, fondue y postres calientes para reconfortar el cuerpo.",
-                            etiquetas = listOf("invierno", "hogareno")
+                            etiquetas = listOf("invierno", "hogareno"),
+                            motivo = "Temperatura baja detectada."
                         )
-                    }
+                    },
+                    peso = 4
                 )
             )
             return MotorRecomendacionesContextuales(reglas)

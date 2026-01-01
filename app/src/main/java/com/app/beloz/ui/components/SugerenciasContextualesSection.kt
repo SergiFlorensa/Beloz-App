@@ -82,7 +82,7 @@ fun SugerenciasContextualesSection(
                 }
             } else if (estado.sugerencias.isEmpty()) {
                 Text(
-                    text = "Sin recomendaciones todavía",
+                    text = "Sin recomendaciones todavia",
                     color = Color.LightGray,
                     fontSize = 13.sp
                 )
@@ -117,6 +117,14 @@ private fun SugerenciaContextualItem(sugerencia: SugerenciaContextual) {
         )
         Spacer(modifier = Modifier.height(4.dp))
         Text(text = sugerencia.descripcion, color = Color(0xFFE0E0E0), fontSize = 13.sp)
+        if (!sugerencia.motivo.isNullOrBlank()) {
+            Spacer(modifier = Modifier.height(4.dp))
+            Text(
+                text = sugerencia.motivo,
+                color = Color(0xFF9FE2BF),
+                fontSize = 11.sp
+            )
+        }
         if (sugerencia.etiquetas.isNotEmpty()) {
             Spacer(modifier = Modifier.height(6.dp))
             Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {

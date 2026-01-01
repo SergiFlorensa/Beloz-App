@@ -3,7 +3,7 @@ package com.app.beloz.innovacion.contexto.dominio
 import java.time.DayOfWeek
 
 /**
- * Representa los datos mínimos que podemos obtener localmente sin depender de la red.
+ * Representa los datos minimos que podemos obtener localmente sin depender de la red.
  */
 data class ContextoEntrada(
     val momentoDelDia: MomentoDelDia,

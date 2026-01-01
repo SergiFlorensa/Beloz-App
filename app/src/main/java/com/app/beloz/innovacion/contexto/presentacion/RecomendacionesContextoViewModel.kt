@@ -9,6 +9,7 @@ import com.app.beloz.innovacion.contexto.dominio.ContextoEntrada
 import com.app.beloz.innovacion.contexto.dominio.EstadoClima
 import com.app.beloz.innovacion.contexto.dominio.MotorRecomendacionesContextuales
 import com.app.beloz.innovacion.contexto.dominio.SugerenciaContextual
+import com.app.beloz.innovacion.contexto.dominio.TipoDeDia
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
@@ -46,8 +47,8 @@ class RecomendacionesContextoViewModel(
 
     private fun construirDescripcion(contexto: ContextoEntrada): String {
         val momento = contexto.momentoDelDia.name.lowercase().replaceFirstChar { it.uppercase() }
-        val tipoDia = if (contexto.tipoDeDia == com.app.beloz.innovacion.contexto.dominio.TipoDeDia.FIN_DE_SEMANA) "fin de semana" else "día laborable"
-        return "$momento • ${contexto.diaDeLaSemana.name.lowercase()} • $tipoDia"
+        val tipoDia = if (contexto.tipoDeDia == TipoDeDia.FIN_DE_SEMANA) "fin de semana" else "dia laborable"
+        return "$momento - ${contexto.diaDeLaSemana.name.lowercase()} - $tipoDia"
     }
 
     private fun construirDescripcionClima(clima: ContextoClima?): String {
@@ -56,12 +57,12 @@ class RecomendacionesContextoViewModel(
             EstadoClima.LLUVIA -> "lluvioso"
             EstadoClima.NUBLADO -> "nublado"
             EstadoClima.SOLEADO -> "soleado"
-            EstadoClima.FRIO -> "frío"
+            EstadoClima.FRIO -> "frio"
             EstadoClima.DESCONOCIDO -> "variable"
         }
-        val temp = clima.temperatura?.let { String.format("%.1f°C", it) } ?: ""
+        val temp = clima.temperatura?.let { String.format("%.1f C", it) } ?: ""
         val desc = clima.descripcion?.replaceFirstChar { it.uppercase() } ?: estado
-        return listOf(desc, temp).filter { it.isNotBlank() }.joinToString(" • ")
+        return listOf(desc, temp).filter { it.isNotBlank() }.joinToString(" - ")
     }
 }
 

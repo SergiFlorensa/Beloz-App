@@ -3,7 +3,7 @@ package com.app.beloz.data.models
 import com.google.gson.annotations.SerializedName
 
 data class Restaurante(
-    @SerializedName("restaurante_id") val restauranteId: Int,
+    @SerializedName(value = "restaurante_id", alternate = ["id"]) val restauranteId: Int,
     @SerializedName("name") val name: String,
     @SerializedName("image_path") val imagePath: String?,
     @SerializedName("wait_time") val waitTime: Int,

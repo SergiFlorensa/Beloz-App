@@ -6,5 +6,6 @@
 data class SugerenciaContextual(
     val titulo: String,
     val descripcion: String,
-    val etiquetas: List<String> = emptyList()
+    val etiquetas: List<String> = emptyList(),
+    val motivo: String? = null
 )

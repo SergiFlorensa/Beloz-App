@@ -1,7 +1,7 @@
 package com.app.beloz.apis.services
 
+import com.app.beloz.data.models.DetallePedidoSupabase
 import com.app.beloz.data.models.Pedido
-import com.app.beloz.data.models.DetallePedido
 import com.google.gson.annotations.SerializedName
 import kotlinx.serialization.Serializable
 import retrofit2.http.Body
@@ -28,8 +28,8 @@ interface PedidosApi {
     @GET("detalle_pedido")
     suspend fun getDetallePedido(
         @Query("pedido_id") pedidoId: String,
-        @Query("select") select: String = "*"
-    ): List<DetallePedido>
+        @Query("select") select: String = "id_detalle,pedido_id,plato_id,cantidad,precio,platos(name,restaurante(name))"
+    ): List<DetallePedidoSupabase>
 
     data class CrearPedidoRequest(
         @SerializedName("user_id") val userId: Int,

@@ -12,7 +12,8 @@ import retrofit2.http.Query
 interface PaymentApi {
     @GET("datos_bancarios")
     suspend fun obtenerDatos(
-        @Query("userId") userFilter: String,
+        @Query("user_id") userFilter: String,
+        @Query("order") order: String? = null,
         @Query("limit") limit: Int = 1
     ): List<DatosBancarios>
 
@@ -23,26 +24,26 @@ interface PaymentApi {
     @PATCH("datos_bancarios")
     @Headers("Prefer: return=representation")
     suspend fun actualizar(
-        @Query("userId") userFilter: String,
+        @Query("user_id") userFilter: String,
         @Body body: SupabasePaymentUpdate
     ): List<DatosBancarios>
 }
 
 data class SupabasePaymentInsert(
-    @SerializedName("userId") val userId: Int,
-    @SerializedName("nombreTitular") val nombreTitular: String?,
-    @SerializedName("numeroTarjetaEncriptado") val numeroTarjetaEncriptado: String?,
+    @SerializedName("user_id") val userId: Int,
+    @SerializedName("nombre_titular") val nombreTitular: String?,
+    @SerializedName("numero_tarjeta_encriptado") val numeroTarjetaEncriptado: String?,
     @SerializedName("iv") val iv: String?,
-    @SerializedName("fechaExpiracion") val fechaExpiracion: String?,
-    @SerializedName("tipoTarjeta") val tipoTarjeta: String?,
-    @SerializedName("metodoPagoPredeterminado") val metodoPagoPredeterminado: Boolean = true
+    @SerializedName("fecha_expiracion") val fechaExpiracion: String?,
+    @SerializedName("tipo_tarjeta") val tipoTarjeta: String?,
+    @SerializedName("metodo_pago_predeterminado") val metodoPagoPredeterminado: Boolean = true
 )
 
 data class SupabasePaymentUpdate(
-    @SerializedName("nombreTitular") val nombreTitular: String?,
-    @SerializedName("numeroTarjetaEncriptado") val numeroTarjetaEncriptado: String?,
+    @SerializedName("nombre_titular") val nombreTitular: String?,
+    @SerializedName("numero_tarjeta_encriptado") val numeroTarjetaEncriptado: String?,
     @SerializedName("iv") val iv: String?,
-    @SerializedName("fechaExpiracion") val fechaExpiracion: String?,
-    @SerializedName("tipoTarjeta") val tipoTarjeta: String?,
-    @SerializedName("metodoPagoPredeterminado") val metodoPagoPredeterminado: Boolean = true
+    @SerializedName("fecha_expiracion") val fechaExpiracion: String?,
+    @SerializedName("tipo_tarjeta") val tipoTarjeta: String?,
+    @SerializedName("metodo_pago_predeterminado") val metodoPagoPredeterminado: Boolean = true
 )

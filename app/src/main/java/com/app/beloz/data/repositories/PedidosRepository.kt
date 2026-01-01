@@ -2,8 +2,8 @@ package com.app.beloz.data.repositories
 
 import com.app.beloz.apis.services.PedidosApi
 import com.app.beloz.apis.services.PedidosService
-import com.app.beloz.data.models.Pedido
 import com.app.beloz.data.models.DetallePedido
+import com.app.beloz.data.models.Pedido
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 
@@ -55,7 +55,24 @@ object PedidosRepository {
 
     suspend fun getDetallePedido(pedidoId: Int): List<DetallePedido> {
         return withContext(Dispatchers.IO) {
-            pedidosService.getDetallePedido(pedidoId)
+            val detalles = pedidosService.getDetallePedido(pedidoId)
+            detalles.map { detalle ->
+                val nombrePlato = detalle.platoNombre
+                    ?: detalle.plato?.name
+                    ?: "Desconocido"
+                val restauranteNombre = detalle.restauranteNombre
+                    ?: detalle.plato?.restaurante?.name
+                    ?: "Desconocido"
+                DetallePedido(
+                    idDetalle = detalle.idDetalle,
+                    pedidoId = detalle.pedidoId,
+                    platoId = detalle.platoId,
+                    cantidad = detalle.cantidad,
+                    precio = detalle.precio,
+                    nombrePlato = nombrePlato,
+                    restauranteNombre = restauranteNombre
+                )
+            }
         }
     }
 }

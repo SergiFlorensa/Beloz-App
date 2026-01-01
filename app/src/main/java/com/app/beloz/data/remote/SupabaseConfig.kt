@@ -1,9 +1,18 @@
 package com.app.beloz.data.remote
 
+import com.app.beloz.BuildConfig
+
 object SupabaseConfig {
-    const val SUPABASE_URL = "https://vcsbipotujymyxzbsejq.supabase.co"
-    const val SUPABASE_ANON_KEY = "sb_secret_5Bhrxulag2_yoKEJVJO9Qg_gE-tlUwo"
-    const val REST_BASE_URL = "$SUPABASE_URL/rest/v1/"
-    const val STORAGE_BUCKET = "images"
-    const val IMAGES_BASE_URL = "$SUPABASE_URL/storage/v1/object/public/$STORAGE_BUCKET/"
+    private const val DEFAULT_SUPABASE_URL = "https://vcsbipotujymyxzbsejq.supabase.co"
+    private const val DEFAULT_SUPABASE_ANON_KEY = "sb_secret_5Bhrxulag2_yoKEJVJO9Qg_gE-tlUwo"
+    private const val DEFAULT_STORAGE_BUCKET = "images"
+
+    val SUPABASE_URL: String =
+        if (BuildConfig.SUPABASE_URL.isNotBlank()) BuildConfig.SUPABASE_URL else DEFAULT_SUPABASE_URL
+    val SUPABASE_ANON_KEY: String =
+        if (BuildConfig.SUPABASE_ANON_KEY.isNotBlank()) BuildConfig.SUPABASE_ANON_KEY else DEFAULT_SUPABASE_ANON_KEY
+    val STORAGE_BUCKET: String =
+        if (BuildConfig.SUPABASE_STORAGE_BUCKET.isNotBlank()) BuildConfig.SUPABASE_STORAGE_BUCKET else DEFAULT_STORAGE_BUCKET
+    val REST_BASE_URL: String = "$SUPABASE_URL/rest/v1/"
+    val IMAGES_BASE_URL: String = "$SUPABASE_URL/storage/v1/object/public/$STORAGE_BUCKET/"
 }

@@ -12,7 +12,7 @@ class PaymentService {
     suspend fun savePaymentData(datosBancarios: DatosBancarios): Result<Unit> {
         return try {
             val filtro = eq(datosBancarios.userId)
-            val existente = paymentApi.obtenerDatos(userFilter = filtro)
+            val existente = paymentApi.obtenerDatos(userFilter = filtro, order = "id.desc")
             if (existente.isEmpty()) {
                 paymentApi.insertar(datosBancarios.toInsert())
             } else {
@@ -26,7 +26,7 @@ class PaymentService {
 
     suspend fun getPaymentData(userId: Int): DatosBancarios? {
         return try {
-            paymentApi.obtenerDatos(userFilter = eq(userId)).firstOrNull()
+            paymentApi.obtenerDatos(userFilter = eq(userId), order = "id.desc").firstOrNull()
         } catch (e: Exception) {
             Log.e("PaymentService", "Error: ${e.message}")
             null

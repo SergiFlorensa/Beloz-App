@@ -1,7 +1,7 @@
 package com.app.beloz.apis.services
 
 import com.app.beloz.apis.services.PedidosApi.CrearPedidoRequest
-import com.app.beloz.data.models.DetallePedido
+import com.app.beloz.data.models.DetallePedidoSupabase
 import com.app.beloz.data.models.Pedido
 import com.app.beloz.data.remote.SupabaseClient
 
@@ -24,7 +24,11 @@ class PedidosService {
         return pedidosApi.getPedidosPorUsuario(userId = "eq.$userId", order = "fecha.desc")
     }
 
-    suspend fun getDetallePedido(pedidoId: Int): List<DetallePedido> {
-        return pedidosApi.getDetallePedido(pedidoId = "eq.$pedidoId")
+    suspend fun getDetallePedido(pedidoId: Int): List<DetallePedidoSupabase> {
+        return try {
+            pedidosApi.getDetallePedido(pedidoId = "eq.$pedidoId")
+        } catch (e: Exception) {
+            pedidosApi.getDetallePedido(pedidoId = "eq.$pedidoId", select = "*")
+        }
     }
 }

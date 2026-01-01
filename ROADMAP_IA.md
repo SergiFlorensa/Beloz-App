@@ -120,3 +120,4 @@ Response:
 ## Estado actual (implementado)
 - DataStore local para eventos y perfil (PerfilSaborRepository).
 - Logging en UI: vistas de restaurantes (lista, populares, intereses), add-to-cart, checkout y compra.
+- Ordenacion inicial de restaurantes basada en perfil local (RestaurantesViewModel).

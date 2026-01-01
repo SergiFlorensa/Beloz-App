@@ -1,3 +1,21 @@
+import java.util.Properties
+
+val localProperties = Properties()
+val localPropertiesFile = rootProject.file("local.properties")
+if (localPropertiesFile.exists()) {
+    localPropertiesFile.inputStream().use(localProperties::load)
+}
+
+fun getProp(key: String): String {
+    return (project.findProperty(key) as String?)
+        ?: localProperties.getProperty(key)
+        ?: ""
+}
+
+val supabaseUrl = getProp("SUPABASE_URL")
+val supabaseAnonKey = getProp("SUPABASE_ANON_KEY")
+val supabaseBucket = getProp("SUPABASE_STORAGE_BUCKET").ifBlank { "images" }
+
 plugins {
     id("com.android.application")
     id("org.jetbrains.kotlin.android")
@@ -20,6 +38,11 @@ android {
         vectorDrawables {
             useSupportLibrary = true
         }
+
+        fun configString(value: String): String = "\"${value.replace("\"", "\\\"")}\""
+        buildConfigField("String", "SUPABASE_URL", configString(supabaseUrl))
+        buildConfigField("String", "SUPABASE_ANON_KEY", configString(supabaseAnonKey))
+        buildConfigField("String", "SUPABASE_STORAGE_BUCKET", configString(supabaseBucket))
 
     }
 
@@ -44,6 +67,7 @@ android {
 
     buildFeatures {
         compose = true
+        buildConfig = true
     }
 
     composeOptions {

@@ -10,25 +10,25 @@ import retrofit2.http.POST
 import retrofit2.http.Query
 
 interface AuthApi {
-    @GET("usuarios")
+    @GET("users")
     suspend fun fetchUsuarios(
         @Query("email") emailFilter: String? = null,
         @Query("password") passwordFilter: String? = null,
         @Query("id_user") idFilter: String? = null
     ): List<SupabaseUserDto>
 
-    @POST("usuarios")
+    @POST("users")
     @Headers("Prefer: return=representation")
     suspend fun crearUsuario(@Body body: SupabaseUserInsert): List<SupabaseUserDto>
 
-    @PATCH("usuarios")
+    @PATCH("users")
     @Headers("Prefer: return=representation")
     suspend fun actualizarUsuario(
         @Query("id_user") idFilter: String,
         @Body body: Map<String, @JvmSuppressWildcards Any>
     ): List<SupabaseUserDto>
 
-    @DELETE("usuarios")
+    @DELETE("users")
     suspend fun eliminarUsuario(@Query("id_user") idFilter: String)
 }
 

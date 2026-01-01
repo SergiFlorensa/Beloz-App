@@ -5,7 +5,7 @@ import retrofit2.http.GET
 import retrofit2.http.Query
 
 interface RestauranteApi {
-    @GET("restaurantes")
+    @GET("restaurante")
     suspend fun fetchRestaurantes(
         @Query("select") select: String = "*",
         @Query("order") order: String? = null,
@@ -17,4 +17,3 @@ interface RestauranteApi {
         @Query("or") or: String? = null
     ): List<Restaurante>
 }
-

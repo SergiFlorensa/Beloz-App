@@ -1,49 +1,52 @@
 package com.app.beloz.apis.services
 
-import com.app.beloz.data.models.*
 import com.google.gson.annotations.SerializedName
-import kotlinx.serialization.Serializable
-import okhttp3.ResponseBody
-import retrofit2.Response
 import retrofit2.http.Body
-import retrofit2.http.Header
+import retrofit2.http.DELETE
+import retrofit2.http.GET
+import retrofit2.http.Headers
+import retrofit2.http.PATCH
 import retrofit2.http.POST
+import retrofit2.http.Query
 
 interface AuthApi {
-    @POST("api/auth/register")
-    suspend fun register(@Body user: UserRegistration): User
+    @GET("usuarios")
+    suspend fun fetchUsuarios(
+        @Query("email") emailFilter: String? = null,
+        @Query("password") passwordFilter: String? = null,
+        @Query("id_user") idFilter: String? = null
+    ): List<SupabaseUserDto>
 
-    @POST("api/auth/login")
-    suspend fun login(@Body credentials: AuthCredentials): User
+    @POST("usuarios")
+    @Headers("Prefer: return=representation")
+    suspend fun crearUsuario(@Body body: SupabaseUserInsert): List<SupabaseUserDto>
 
-    @POST("api/auth/update_email")
-    suspend fun updateEmail(@Body request: UpdateEmailRequest): User
+    @PATCH("usuarios")
+    @Headers("Prefer: return=representation")
+    suspend fun actualizarUsuario(
+        @Query("id_user") idFilter: String,
+        @Body body: Map<String, @JvmSuppressWildcards Any>
+    ): List<SupabaseUserDto>
 
-    @POST("api/auth/update_password")
-    suspend fun updatePassword(@Body request: UpdatePasswordRequest)
-
-    @POST("api/auth/update_phone")
-    suspend fun updatePhoneNumber(
-        @Header("Authorization") authHeader: String,
-        @Body request: UpdatePhoneNumberRequest
-    ): User
-
-    @POST("api/auth/delete_account")
-    suspend fun deleteUser(@Header("Authorization") authHeader: String): Response<ResponseBody>
+    @DELETE("usuarios")
+    suspend fun eliminarUsuario(@Query("id_user") idFilter: String)
 }
 
-@Serializable
-data class AuthCredentials(
-    val email: String,
-    val password: String
+data class SupabaseUserDto(
+    @SerializedName("id_user") val idUser: Int?,
+    @SerializedName("email") val email: String?,
+    @SerializedName("name") val name: String?,
+    @SerializedName("surname") val surname: String?,
+    @SerializedName("token") val token: String?,
+    @SerializedName("num_telefono") val numTelefono: String?,
+    @SerializedName("password") val password: String?
 )
 
-@Serializable
-data class UserRegistration(
-    val name: String,
-    val surname: String,
-    val email: String,
-    val password: String,
+data class SupabaseUserInsert(
+    @SerializedName("name") val name: String,
+    @SerializedName("surname") val surname: String,
+    @SerializedName("email") val email: String,
+    @SerializedName("password") val password: String,
     @SerializedName("num_telefono") val numTelefono: String
 )
 

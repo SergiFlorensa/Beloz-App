@@ -1,35 +1,11 @@
 package com.app.beloz.apis.services
 
-import com.app.beloz.data.models.*
-import com.app.beloz.utils.SessionManager
-import com.app.beloz.utils.TokenInterceptor
-import okhttp3.OkHttpClient
-import okhttp3.logging.HttpLoggingInterceptor
-import org.json.JSONObject
-import retrofit2.HttpException
-import retrofit2.Retrofit
-import retrofit2.converter.gson.GsonConverterFactory
+import com.app.beloz.data.models.User
+import com.app.beloz.data.remote.SupabaseClient
 
-class AuthService(private val baseUrl: String, private val sessionManager: SessionManager) {
-    private val retrofit: Retrofit by lazy {
-        val loggingInterceptor = HttpLoggingInterceptor().apply {
-            setLevel(HttpLoggingInterceptor.Level.BODY)
-        }
-
-        val client = OkHttpClient.Builder()
-            .addInterceptor(loggingInterceptor)
-            .addInterceptor(TokenInterceptor(sessionManager))
-            .build()
-
-        Retrofit.Builder()
-            .baseUrl(baseUrl)
-            .client(client)
-            .addConverterFactory(GsonConverterFactory.create())
-            .build()
-    }
-
+class AuthService {
     private val authApi: AuthApi by lazy {
-        retrofit.create(AuthApi::class.java)
+        SupabaseClient.retrofit.create(AuthApi::class.java)
     }
 
     suspend fun register(
@@ -39,89 +15,79 @@ class AuthService(private val baseUrl: String, private val sessionManager: Sessi
         password: String,
         numTelefono: String
     ): User {
-        val user = UserRegistration(name, surname, email, password, numTelefono)
-
-        return try {
-            authApi.register(user)
-        } catch (e: HttpException) {
-            val errorBody = e.response()?.errorBody()?.string()
-            val errorMessage = parseErrorMessage(errorBody)
-            throw Exception(errorMessage)
-        } catch (e: Exception) {
-            throw Exception(e.message ?: "Error desconocido")
+        val existing = authApi.fetchUsuarios(emailFilter = eq(email))
+        if (existing.isNotEmpty()) {
+            throw Exception("El email ya está registrado.")
         }
+        val insert = SupabaseUserInsert(
+            name = name,
+            surname = surname,
+            email = email,
+            password = password,
+            numTelefono = numTelefono
+        )
+        val created = authApi.crearUsuario(insert)
+        return created.firstOrNull()?.toUser()
+            ?: throw Exception("No se pudo registrar el usuario.")
     }
-
 
     suspend fun login(email: String, password: String): User {
-        val credentials = AuthCredentials(email, password)
-        return try {
-            authApi.login(credentials)
-        } catch (e: HttpException) {
-            val errorBody = e.response()?.errorBody()?.string()
-            val errorMessage = parseErrorMessage(errorBody)
-            throw Exception(errorMessage)
-        } catch (e: Exception) {
-            throw Exception(e.message ?: "Error desconocido")
-        }
+        val usuarios = authApi.fetchUsuarios(
+            emailFilter = eq(email),
+            passwordFilter = eq(password)
+        )
+        return usuarios.firstOrNull()?.toUser()
+            ?: throw Exception("Credenciales incorrectas.")
     }
+
     suspend fun updateEmail(userId: Int, newEmail: String): User {
-        val request = UpdateEmailRequest(userId, newEmail)
-        try {
-            return authApi.updateEmail(request)
-        } catch (e: HttpException) {
-            val errorBody = e.response()?.errorBody()?.string()
-            val errorMessage = parseErrorMessage(errorBody)
-            throw Exception(errorMessage)
-        }
+        val updated = authApi.actualizarUsuario(
+            idFilter = eq(userId),
+            body = mapOf("email" to newEmail)
+        )
+        return updated.firstOrNull()?.toUser() ?: throw Exception("No se pudo actualizar el correo.")
     }
 
     suspend fun updatePassword(userId: Int, currentPassword: String, newPassword: String) {
-        val request = UpdatePasswordRequest(userId, currentPassword, newPassword)
-        try {
-            authApi.updatePassword(request)
-        } catch (e: HttpException) {
-            val errorBody = e.response()?.errorBody()?.string()
-            val errorMessage = parseErrorMessage(errorBody)
-            throw Exception(errorMessage)
+        val usuario = authApi.fetchUsuarios(idFilter = eq(userId)).firstOrNull()
+            ?: throw Exception("Usuario no encontrado.")
+        if (usuario.password.isNullOrBlank() || usuario.password != currentPassword) {
+            throw Exception("La contraseña actual es incorrecta.")
         }
-    }
-    suspend fun updatePhoneNumber(numTelefono: String): User {
-        val token = sessionManager.getUserToken() ?: ""
-        val authHeader = "Bearer $token"
-        val request = UpdatePhoneNumberRequest(numTelefono)
-        try {
-            return authApi.updatePhoneNumber(authHeader, request)
-        } catch (e: HttpException) {
-            val errorBody = e.response()?.errorBody()?.string()
-            val errorMessage = parseErrorMessage(errorBody)
-            throw Exception(errorMessage)
+        val updated = authApi.actualizarUsuario(
+            idFilter = eq(userId),
+            body = mapOf("password" to newPassword)
+        )
+        if (updated.isEmpty()) {
+            throw Exception("No se pudo actualizar la contraseña.")
         }
     }
 
-
-
-    private fun parseErrorMessage(errorBody: String?): String {
-        return try {
-            val jsonObject = JSONObject(errorBody)
-            jsonObject.getString("error")
-        } catch (e: Exception) {
-            "Error desconocido"
-        }
-    }
-    suspend fun deleteUser(): String {
-        val token = sessionManager.getUserToken() ?: ""
-        val authHeader = "Bearer $token"
-
-        try {
-            authApi.deleteUser(authHeader)
-            return "Cuenta eliminada con Ã©xito"
-        } catch (e: HttpException) {
-            val errorBody = e.response()?.errorBody()?.string()
-            val errorMessage = parseErrorMessage(errorBody)
-            throw Exception(errorMessage)
-        }
+    suspend fun updatePhoneNumber(userId: Int, numTelefono: String): User {
+        val updated = authApi.actualizarUsuario(
+            idFilter = eq(userId),
+            body = mapOf("num_telefono" to numTelefono)
+        )
+        return updated.firstOrNull()?.toUser() ?: throw Exception("No se pudo actualizar el teléfono.")
     }
 
+    suspend fun deleteUser(userId: Int) {
+        authApi.eliminarUsuario(eq(userId))
+    }
+
+    private fun eq(value: Any): String = "eq.$value"
 }
 
+private fun SupabaseUserDto.toUser(): User {
+    if (idUser == null || email.isNullOrBlank()) {
+        throw Exception("Usuario inválido.")
+    }
+    return User(
+        idUser = idUser,
+        email = email,
+        name = name.orEmpty(),
+        surname = surname.orEmpty(),
+        token = token,
+        numTelefono = numTelefono
+    )
+}

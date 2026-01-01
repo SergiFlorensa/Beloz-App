@@ -188,7 +188,11 @@ class AuthViewModel(application: Application) : AndroidViewModel(application) {
     ) {
         viewModelScope.launch {
             try {
-                AuthRepository.deleteUser()
+                if (user == null) {
+                    onError("Usuario no autenticado.")
+                    return@launch
+                }
+                AuthRepository.deleteUser(user!!.idUser)
                 sessionManager.clearSession()
                 paymentViewModel.clearPaymentData()
                 user = null
@@ -222,7 +226,7 @@ class AuthViewModel(application: Application) : AndroidViewModel(application) {
                 }
                 Log.d("AuthViewModel", "Updating phone number: $numTelefono")
 
-                val updatedUser = AuthRepository.updatePhoneNumber(numTelefono)
+                val updatedUser = AuthRepository.updatePhoneNumber(user!!.idUser, numTelefono)
 
                 user = updatedUser
                 sessionManager.saveSession(

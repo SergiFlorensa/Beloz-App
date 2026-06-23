@@ -4,12 +4,16 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.app.beloz.innovacion.contexto.datos.ProveedorClimaRemoto
 import com.app.beloz.innovacion.contexto.datos.ProveedorContextoLocal
+import com.app.beloz.innovacion.contexto.datos.ProveedorRecomendacionesRemoto
 import com.app.beloz.innovacion.contexto.dominio.ContextoClima
 import com.app.beloz.innovacion.contexto.dominio.ContextoEntrada
+import com.app.beloz.innovacion.contexto.dominio.ConteoContextual
 import com.app.beloz.innovacion.contexto.dominio.EstadoClima
 import com.app.beloz.innovacion.contexto.dominio.MotorRecomendacionesContextuales
+import com.app.beloz.innovacion.contexto.dominio.PerfilSaborContextual
 import com.app.beloz.innovacion.contexto.dominio.SugerenciaContextual
 import com.app.beloz.innovacion.contexto.dominio.TipoDeDia
+import com.app.beloz.innovacion.perfil.PerfilSabor
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
@@ -17,6 +21,7 @@ import kotlinx.coroutines.launch
 class RecomendacionesContextoViewModel(
     private val proveedorContexto: ProveedorContextoLocal = ProveedorContextoLocal(),
     private val proveedorClima: ProveedorClimaRemoto = ProveedorClimaRemoto(),
+    private val proveedorRemoto: ProveedorRecomendacionesRemoto = ProveedorRecomendacionesRemoto(),
     private val motor: MotorRecomendacionesContextuales = MotorRecomendacionesContextuales.motorPorDefecto()
 ) : ViewModel() {
 
@@ -27,15 +32,25 @@ class RecomendacionesContextoViewModel(
         refrescar()
     }
 
-    fun refrescar() {
+    fun refrescar(perfilSabor: PerfilSabor? = null) {
         viewModelScope.launch {
             _estado.value = _estado.value.copy(cargando = true, error = null)
             val contextoBase = proveedorContexto.obtenerContexto()
             val clima = proveedorClima.obtenerClima()
-            val contexto = contextoBase.copy(clima = clima)
-            val sugerencias = motor.generar(contexto)
+            val contexto = contextoBase.copy(
+                clima = clima,
+                perfilSabor = perfilSabor?.toContextual()
+            )
+            
+            val sugerenciasLocales = motor.generar(contexto)
+            val sugerenciasRemotas = proveedorRemoto.obtenerRecomendaciones(contexto)
+            
+            val sugerenciasTotales = (sugerenciasRemotas + sugerenciasLocales)
+                .distinctBy { it.restauranteId?.toString() ?: it.titulo }
+                .take(5)
+
             _estado.value = RecomendacionesContextoUiState(
-                sugerencias = sugerencias,
+                sugerencias = sugerenciasTotales,
                 descripcionContextual = construirDescripcion(contexto),
                 descripcionClima = construirDescripcionClima(clima),
                 hayClima = clima != null,
@@ -63,6 +78,15 @@ class RecomendacionesContextoViewModel(
         val temp = clima.temperatura?.let { String.format("%.1f C", it) } ?: ""
         val desc = clima.descripcion?.replaceFirstChar { it.uppercase() } ?: estado
         return listOf(desc, temp).filter { it.isNotBlank() }.joinToString(" - ")
+    }
+
+    private fun PerfilSabor.toContextual(): PerfilSaborContextual {
+        return PerfilSaborContextual(
+            totalEventos = totalEventos,
+            topTiposComida = topTiposComida.map { ConteoContextual(it.clave, it.conteo) },
+            topRangosPrecio = topRangosPrecio.map { ConteoContextual(it.clave, it.conteo) },
+            topRestaurantes = topRestaurantes.map { ConteoContextual(it.clave, it.conteo) }
+        )
     }
 }
 

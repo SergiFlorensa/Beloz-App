@@ -46,7 +46,7 @@ fun PagPrincipal(navController: NavController,cartViewModel: CartViewModel) {
             ) {
                 MenuFiltros(navController = navController)
                 Spacer(modifier = Modifier.height(16.dp))
-                SugerenciasContextualesSection()
+                SugerenciasContextualesSection(navController = navController)
                 Spacer(modifier = Modifier.height(16.dp))
                 EstablecimientoSection(navController = navController)
                 Spacer(modifier = Modifier.height(16.dp))

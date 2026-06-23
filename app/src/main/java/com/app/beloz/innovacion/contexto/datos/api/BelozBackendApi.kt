@@ -1,11 +1,19 @@
-package com.app.beloz.innovacion.contexto.dominio
+package com.app.beloz.innovacion.contexto.datos.api
 
+import com.app.beloz.innovacion.contexto.dominio.ContextoEntrada
 import com.google.gson.annotations.SerializedName
+import retrofit2.http.Body
+import retrofit2.http.POST
 
-data class SugerenciaContextual(
+interface BelozBackendApi {
+    @POST("api/recomendaciones")
+    suspend fun obtenerRecomendaciones(@Body contexto: ContextoEntrada): List<SugerenciaBackendResponse>
+}
+
+data class SugerenciaBackendResponse(
     val titulo: String,
     val descripcion: String,
-    val etiquetas: List<String> = emptyList(),
+    val etiquetas: List<String>,
     val motivo: String? = null,
     @SerializedName("restaurante_id")
     val restauranteId: Int? = null,

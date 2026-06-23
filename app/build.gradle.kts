@@ -15,6 +15,7 @@ fun getProp(key: String): String {
 val supabaseUrl = getProp("SUPABASE_URL")
 val supabaseAnonKey = getProp("SUPABASE_ANON_KEY")
 val supabaseBucket = getProp("SUPABASE_STORAGE_BUCKET").ifBlank { "images" }
+val belozApiBaseUrl = getProp("BELOZ_API_BASE_URL").ifBlank { "https://beloz.onrender.com/" }
 
 plugins {
     id("com.android.application")
@@ -43,6 +44,7 @@ android {
         buildConfigField("String", "SUPABASE_URL", configString(supabaseUrl))
         buildConfigField("String", "SUPABASE_ANON_KEY", configString(supabaseAnonKey))
         buildConfigField("String", "SUPABASE_STORAGE_BUCKET", configString(supabaseBucket))
+        buildConfigField("String", "BELOZ_API_BASE_URL", configString(belozApiBaseUrl))
 
     }
 
@@ -124,9 +126,6 @@ dependencies {
     implementation("androidx.datastore:datastore-preferences:1.1.1")
 
     implementation("io.coil-kt:coil-compose:2.4.0")
-
-    implementation("com.google.ai.client.generativeai:generativeai:0.9.0")
-
 
     implementation ("org.osmdroid:osmdroid-android:6.1.10")
 

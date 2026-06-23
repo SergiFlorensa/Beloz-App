@@ -58,6 +58,7 @@ fun PagPrincipal(navController: NavController,cartViewModel: CartViewModel) {
 
             }
             FloatingCartIcon(navController = navController, cartViewModel = cartViewModel)
+            FloatingChatIcon(navController = navController)
 
         }
     }

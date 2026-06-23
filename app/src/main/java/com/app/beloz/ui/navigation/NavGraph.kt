@@ -36,6 +36,9 @@ fun NavGraph(
         composable("home") {
             PagPrincipal(navController = navController, cartViewModel = cartViewModel)
         }
+        composable("beloz_chat") {
+            BelozChatScreen(navController = navController)
+        }
         composable("cuenta") {
             Cuenta(navController = navController, authViewModel = authViewModel, paymentViewModel =paymentViewModel, pedidosViewModel = pedidosViewModel, cartViewModel = cartViewModel)
         }

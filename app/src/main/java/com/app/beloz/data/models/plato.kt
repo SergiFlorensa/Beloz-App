@@ -9,5 +9,6 @@ data class Plato(
     @SerializedName("description") val description: String,
     @SerializedName("price") val price: Double,
     @SerializedName("image_path") val imagePath: String?,
-    @SerializedName("restaurante_id") val restaurantId: Int
+    @SerializedName("restaurante_id") val restaurantId: Int,
+    @SerializedName("category") val category: String? = null
 )

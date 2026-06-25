@@ -7,6 +7,7 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import com.app.beloz.ui.viewModel.RestaurantesViewModel
@@ -19,12 +20,22 @@ fun TopBar(navController: NavController, viewModel: RestaurantesViewModel) {
     Column(modifier = Modifier.fillMaxWidth()) {
         Row(
             modifier = Modifier
-                .padding(top = 20.dp, start = 20.dp, end = 20.dp)
+                .padding(top = 16.dp, start = 12.dp, end = 12.dp)
                 .fillMaxWidth(),
             verticalAlignment = Alignment.CenterVertically
         ) {
-            MenuPagPrincipal(navController = navController)
+            Surface(
+                shape = androidx.compose.foundation.shape.RoundedCornerShape(18.dp),
+                color = Color.White,
+                shadowElevation = 2.dp,
+                modifier = Modifier.size(46.dp)
+            ) {
+                Box(contentAlignment = Alignment.Center) {
+                    MenuPagPrincipal(navController = navController)
+                }
+            }
 
+            Spacer(modifier = Modifier.width(6.dp))
 
             Box(modifier = Modifier.weight(1f)) {
                 Buscador(
@@ -34,18 +45,29 @@ fun TopBar(navController: NavController, viewModel: RestaurantesViewModel) {
                     },
                     searchResults = searchResults.map { it.name },
                     searchResultsIds = searchResultsIds,
+                    searchResultKeywords = searchResults.map { it.typeOfFood },
                     onResultClick = { selectedResultId ->
                         navController.navigate("platos_restaurante/$selectedResultId")
                     }
                 )
             }
 
+            Spacer(modifier = Modifier.width(6.dp))
 
-            IconoLocalizacion(iconSize = 30.dp) {
-                navController.navigate("map")
+            Surface(
+                shape = androidx.compose.foundation.shape.RoundedCornerShape(18.dp),
+                color = Color.White,
+                shadowElevation = 2.dp,
+                modifier = Modifier.size(46.dp)
+            ) {
+                Box(contentAlignment = Alignment.Center) {
+                    IconoLocalizacion(iconSize = 26.dp) {
+                        navController.navigate("map")
+                    }
+                }
             }
         }
 
-        Spacer(modifier = Modifier.height(8.dp))
+        Spacer(modifier = Modifier.height(10.dp))
     }
 }

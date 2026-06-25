@@ -40,6 +40,7 @@ fun Buscador(
     onQueryChanged: (String) -> Unit,
     searchResults: List<String>,
     searchResultsIds: List<String>,
+    searchResultKeywords: List<String> = emptyList(),
     onResultClick: (String) -> Unit
 ) {
     var textState by remember { mutableStateOf(TextFieldValue()) }
@@ -47,6 +48,10 @@ fun Buscador(
     var debounceJob by remember { mutableStateOf<Job?>(null) }
 
     var showResults by remember { mutableStateOf(false) }
+    val currentQuery = textState.text.trim()
+    val rankedResults = remember(searchResults, searchResultsIds, searchResultKeywords, currentQuery) {
+        rankSearchResults(searchResults, searchResultsIds, searchResultKeywords, currentQuery)
+    }
 
     val textFieldSize = remember { mutableStateOf(androidx.compose.ui.geometry.Size.Zero) }
     val textFieldOffset = remember { mutableStateOf(Offset.Zero) }
@@ -74,7 +79,7 @@ fun Buscador(
                         delay(300)
                         val query = newValue.text.trim()
                         onQueryChanged(query)
-                        showResults = query.isNotEmpty() && searchResults.isNotEmpty()
+                        showResults = query.isNotEmpty()
                     }
                 },
                 placeholder = {
@@ -138,7 +143,7 @@ fun Buscador(
                 shape = RoundedCornerShape(12.dp)
             )
 
-            if (showResults) {
+            if (showResults && rankedResults.isNotEmpty()) {
                 Popup(
                     alignment = Alignment.TopStart,
                     offset = IntOffset(
@@ -164,18 +169,18 @@ fun Buscador(
                                 .padding(vertical = 8.dp)
                                 .heightIn(max = 300.dp)
                         ) {
-                            itemsIndexed(searchResults) { index, result ->
+                            itemsIndexed(rankedResults) { index, result ->
                                 Column(
                                     modifier = Modifier
                                         .fillMaxWidth()
                                         .clickable {
-                                            onResultClick(searchResultsIds[index])
+                                            onResultClick(result.id)
                                             showResults = false
                                         }
                                         .padding(horizontal = 16.dp, vertical = 5.dp)
                                 ) {
                                     Text(
-                                        text = result,
+                                        text = result.name,
                                         fontSize = 12.sp,
                                         fontFamily = DanfordFontFamily,
                                         fontWeight = FontWeight.Medium,
@@ -183,8 +188,8 @@ fun Buscador(
                                         maxLines = 1,
                                         overflow = TextOverflow.Ellipsis
                                     )
-                                    if (index < searchResults.size - 1) {
-                                        Divider(
+                                    if (index < rankedResults.size - 1) {
+                                        HorizontalDivider(
                                             color = Color(0xFF71CD9D),
                                             thickness = 1.dp,
                                             modifier = Modifier.padding(top = 12.dp)
@@ -198,4 +203,45 @@ fun Buscador(
             }
         }
     }
+}
+
+private data class RankedSearchResult(
+    val name: String,
+    val id: String,
+    val keywords: String
+)
+
+private fun rankSearchResults(
+    names: List<String>,
+    ids: List<String>,
+    keywords: List<String>,
+    query: String
+): List<RankedSearchResult> {
+    if (query.isBlank()) return emptyList()
+
+    val normalizedQuery = query.lowercase()
+    val zipped = names.zip(ids).mapIndexed { index, (name, id) ->
+        RankedSearchResult(name, id, keywords.getOrNull(index).orEmpty())
+    }
+    val directMatches = zipped
+        .mapNotNull { item ->
+            val normalizedName = item.name.lowercase()
+            val normalizedKeywords = item.keywords.lowercase()
+            val rank = when {
+                normalizedName.startsWith(normalizedQuery) -> 0
+                normalizedKeywords.startsWith(normalizedQuery) -> 1
+                normalizedQuery.length > 1 && normalizedName.contains(normalizedQuery) -> 2
+                normalizedQuery.length > 1 && normalizedKeywords.contains(normalizedQuery) -> 3
+                else -> null
+            }
+            rank?.let { item to it }
+        }
+        .sortedWith(compareBy<Pair<RankedSearchResult, Int>> { it.second }.thenBy { it.first.name.lowercase() })
+        .map { it.first }
+
+    if (normalizedQuery.length == 1 || directMatches.isNotEmpty()) {
+        return directMatches.take(8)
+    }
+
+    return zipped.take(8)
 }

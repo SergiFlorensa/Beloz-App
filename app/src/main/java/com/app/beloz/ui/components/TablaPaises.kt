@@ -3,110 +3,175 @@ package com.app.beloz.ui.components
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
+import androidx.compose.foundation.lazy.grid.items
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.*
+import androidx.compose.material3.Surface
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import com.app.beloz.R
-import com.app.beloz.theme.DanfordFontFamily
+
+private data class CountryFlavor(val name: String, val tone: Color)
 
 @Composable
 fun TablaPaises(navController: NavController) {
-    Column(
+    val countries = listOf(
+        CountryFlavor("Japon", Color(0xFFFFC4C4)),
+        CountryFlavor("Argentina", Color(0xFFB9E5FF)),
+        CountryFlavor("Espana", Color(0xFFFFD46B)),
+        CountryFlavor("Peru", Color(0xFFFFB6A1)),
+        CountryFlavor("Arabia", Color(0xFFE9D4FF)),
+        CountryFlavor("India", Color(0xFFFFC58A)),
+        CountryFlavor("Italia", Color(0xFFBFE8C7)),
+        CountryFlavor("Marruecos", Color(0xFFFFD1B8)),
+        CountryFlavor("Vietnam", Color(0xFFC9F0D8)),
+        CountryFlavor("Tailandia", Color(0xFFFFE18A)),
+        CountryFlavor("Mexico", Color(0xFFBCE7D5)),
+        CountryFlavor("China", Color(0xFFFFB3B3))
+    )
+
+    Surface(
         modifier = Modifier
-            .padding(16.dp)
-            .background(Color(0xFFF0F0F0), shape = RoundedCornerShape(12.dp))
-            .padding(16.dp)
+            .fillMaxWidth()
+            .padding(horizontal = 0.dp),
+        shape = RoundedCornerShape(26.dp),
+        color = BelozColors.Ink,
+        shadowElevation = 4.dp
     ) {
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(bottom = 10.dp),
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.SpaceBetween
-        ) {
-            Text(
-                text = "¿Dónde quiere viajar \ntu paladar?",
-                style = MaterialTheme.typography.bodyLarge.copy(
-                    fontWeight = FontWeight.Bold,
-                    fontSize = 14.sp,
-                    fontFamily = DanfordFontFamily,
-                ),
-                modifier = Modifier.weight(1f)
-            )
-            Spacer(modifier = Modifier.width(16.dp))
-
-            Image(
-                painter = painterResource(id = R.drawable.airplane),
-                contentDescription = "Icono de país",
-                modifier = Modifier.size(40.dp),
-                contentScale = ContentScale.Fit
-            )
-        }
-
-        Spacer(modifier = Modifier.height(10.dp))
-
-        LazyVerticalGrid(
-            columns = GridCells.Fixed(2),
-            modifier = Modifier.height(280.dp),
-            contentPadding = PaddingValues(10.dp),
-            horizontalArrangement = Arrangement.spacedBy(10.dp),
-            verticalArrangement = Arrangement.spacedBy(10.dp)
-        ) {
-            items(12) { index ->
-                Box(
-                    modifier = Modifier
-                        .size(150.dp)
-                        .clickable {
-                            navController.navigate("comida_pais_restaurante/${nombrePais(index)}")
-                        }
-                        .background(Color(0xFFFFDB57), shape = RoundedCornerShape(15.dp))
-                ) {
+        Column(modifier = Modifier.padding(16.dp)) {
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Column(modifier = Modifier.weight(1f)) {
                     Text(
-                        text = nombrePais(index),
-                        modifier = Modifier
-                            .align(Alignment.Center)
-                            .padding(4.dp),
-                        style = MaterialTheme.typography.bodySmall.copy(
-                            color = Color(0xFFA03D3D), // Color del texto
-                            fontWeight = FontWeight.Bold,
-                            fontSize = 13.sp,
-                            fontFamily = DanfordFontFamily
-                        )
+                        text = "Viaja con el paladar",
+                        color = Color.White,
+                        fontFamily = FontFamily.SansSerif,
+                        fontSize = 22.sp,
+                        fontWeight = FontWeight.Black
+                    )
+                    Text(
+                        text = "Explora restaurantes por origen",
+                        color = Color(0xFFD9E8DE),
+                        fontFamily = FontFamily.SansSerif,
+                        fontSize = 12.sp
                     )
                 }
+
+                Surface(
+                    shape = RoundedCornerShape(18.dp),
+                    color = BelozColors.Green,
+                    modifier = Modifier.size(54.dp)
+                ) {
+                    Box(contentAlignment = Alignment.Center) {
+                        Image(
+                            painter = painterResource(id = R.drawable.airplane),
+                            contentDescription = "Viajes gastronomicos",
+                            contentScale = ContentScale.Fit,
+                            modifier = Modifier.size(34.dp)
+                        )
+                    }
+                }
             }
-            item {
-                Spacer(modifier = Modifier.height(10.dp))
+
+            Spacer(modifier = Modifier.height(14.dp))
+
+            LazyVerticalGrid(
+                columns = GridCells.Fixed(2),
+                modifier = Modifier.height(278.dp),
+                contentPadding = PaddingValues(bottom = 4.dp),
+                horizontalArrangement = Arrangement.spacedBy(10.dp),
+                verticalArrangement = Arrangement.spacedBy(10.dp)
+            ) {
+                items(countries) { country ->
+                    CountryFlavorTile(
+                        country = country,
+                        onClick = {
+                            navController.navigate("comida_pais_restaurante/${country.name}")
+                        }
+                    )
+                }
             }
         }
     }
 }
 
+@Composable
+private fun CountryFlavorTile(
+    country: CountryFlavor,
+    onClick: () -> Unit
+) {
+    Box(
+        modifier = Modifier
+            .height(88.dp)
+            .clip(RoundedCornerShape(20.dp))
+            .clickable(onClick = onClick)
+            .background(
+                Brush.linearGradient(
+                    listOf(country.tone, Color.White)
+                )
+            )
+            .padding(12.dp)
+    ) {
+        Box(
+            modifier = Modifier
+                .align(Alignment.TopEnd)
+                .size(34.dp)
+                .clip(CircleShape)
+                .background(Color.White.copy(alpha = 0.45f))
+        )
+        Text(
+            text = country.name,
+            color = BelozColors.Ink,
+            fontFamily = FontFamily.SansSerif,
+            fontSize = 16.sp,
+            fontWeight = FontWeight.Black,
+            maxLines = 1,
+            overflow = TextOverflow.Ellipsis,
+            modifier = Modifier.align(Alignment.BottomStart)
+        )
+    }
+}
+
 fun nombrePais(index: Int): String {
     return when (index) {
-        0 -> "Japón"
+        0 -> "Japon"
         1 -> "Argentina"
-        2 -> "España"
-        3 -> "Perú"
+        2 -> "Espana"
+        3 -> "Peru"
         4 -> "Arabia"
         5 -> "India"
         6 -> "Italia"
         7 -> "Marruecos"
         8 -> "Vietnam"
         9 -> "Tailandia"
-        10 -> "México"
+        10 -> "Mexico"
         11 -> "China"
         else -> "Otra"
     }

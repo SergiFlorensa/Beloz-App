@@ -3,123 +3,105 @@ package com.app.beloz.ui.screens
 import android.os.Build
 import androidx.annotation.RequiresApi
 import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.ArrowBack
-import androidx.compose.material3.*
-import androidx.compose.runtime.*
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Surface
+import androidx.compose.material3.Switch
+import androidx.compose.material3.SwitchDefaults
+import androidx.compose.material3.Text
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
+import com.app.beloz.ui.components.BelozColors
+import com.app.beloz.ui.components.BelozTopAppBar
 
-@OptIn(ExperimentalMaterial3Api::class)
 @RequiresApi(Build.VERSION_CODES.M)
 @Composable
 fun CookiesPage(navController: NavController) {
     var cookiesAccepted by remember { mutableStateOf(false) }
 
     Scaffold(
+        containerColor = BelozColors.MintSurface,
         topBar = {
-            TopAppBar(
-                title = { Text("Gestión de Cookies", color = Color.White) },
-                navigationIcon = {
-                    IconButton(onClick = { navController.popBackStack() }) {
-                        Icon(imageVector = Icons.Default.ArrowBack, contentDescription = "Volver", tint = Color.White)
-                    }
-                },
-                colors = TopAppBarDefaults.topAppBarColors(containerColor = Color(0xFF285346))
+            BelozTopAppBar(
+                title = "Cookies",
+                subtitle = "Control de preferencias",
+                navController = navController
             )
         }
     ) { paddingValues ->
-        Box(
+        Column(
             modifier = Modifier
                 .fillMaxSize()
-                .background(Color(0xFF285346))
+                .background(BelozColors.MintSurface)
                 .padding(paddingValues)
+                .padding(horizontal = 18.dp, vertical = 12.dp)
+                .verticalScroll(rememberScrollState()),
+            verticalArrangement = Arrangement.spacedBy(14.dp)
         ) {
-            Column(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .padding(horizontal = 16.dp)
-                    .verticalScroll(rememberScrollState()),
-                verticalArrangement = Arrangement.Top,
-                horizontalAlignment = Alignment.Start
+            InfoPanel(
+                title = "Que son las cookies",
+                text = "Las cookies guardan pequenas preferencias y estados de sesion para recordar idioma, acceso, opciones de navegacion y mejorar el rendimiento de la app."
+            )
+
+            InfoPanel(
+                title = "Tipos que usamos",
+                text = "Esenciales para el funcionamiento basico, rendimiento para analisis, funcionalidad para personalizar la experiencia y publicidad relacionada cuando sea aplicable."
+            )
+
+            Surface(
+                modifier = Modifier.fillMaxWidth(),
+                shape = RoundedCornerShape(24.dp),
+                color = BelozColors.Card,
+                tonalElevation = 0.dp,
+                shadowElevation = 3.dp
             ) {
-                Text(
-                    text = "¿Qué son las Cookies?",
-                    color = Color.White,
-                    fontSize = 18.sp,
-                    modifier = Modifier.padding(bottom = 16.dp),
-                    textAlign = TextAlign.Justify
-                )
-                Text(
-                    text = "Las cookies son pequeños archivos de texto que se almacenan en el dispositivo del usuario cuando navega por la aplicación. Estas cookies nos permiten recordar ciertas preferencias o acciones, como el idioma preferido, la autenticación del usuario, o las opciones de navegación. También se utilizan para analizar cómo los usuarios interactúan con la aplicación, lo que nos ayuda a mejorar la experiencia y el rendimiento.",
-                    color = Color.White,
-                    fontSize = 14.sp,
-                    modifier = Modifier.fillMaxWidth(),
-                    textAlign = TextAlign.Justify
-
-                )
-
-                Spacer(modifier = Modifier.height(16.dp))
-
-                Text(
-                    text = "Tipos de Cookies:",
-                    color = Color.White,
-                    fontSize = 16.sp,
-                    fontWeight = FontWeight.Bold
-                )
-
-                Text(
-                    text = "• Cookies esenciales para el funcionamiento básico.\n• Cookies de rendimiento para análisis.\n• Cookies de funcionalidad para personalizar la experiencia.\n• Cookies publicitarias para mostrar anuncios relacionados.",
-                    color = Color.White,
-                    fontSize = 14.sp,
-                    textAlign = TextAlign.Justify
-                )
-
-                Spacer(modifier = Modifier.height(16.dp))
-
-                Text(
-                    text = "Gestión de Cookies:",
-                    color = Color.White,
-                    fontSize = 16.sp,
-                    fontWeight = FontWeight.Bold
-                )
-
-                Text(
-                    text = "Puedes aceptar o rechazar el uso de cookies en nuestra aplicación. Solo las cookies esenciales para el funcionamiento básico de la aplicación se activarán por defecto.",
-                    color = Color.White,
-                    fontSize = 14.sp,
-                    textAlign = TextAlign.Justify
-                )
-
-                Spacer(modifier = Modifier.height(16.dp))
-
                 Row(
-                    verticalAlignment = Alignment.CenterVertically
+                    modifier = Modifier.padding(18.dp),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.SpaceBetween
                 ) {
-                    Text(
-                        text = "Aceptar Cookies",
-                        color = Color.White,
-                        fontSize = 14.sp,
-                        modifier = Modifier.padding(end = 8.dp)
-                    )
-
+                    Column(modifier = Modifier.weight(1f)) {
+                        Text(
+                            text = "Aceptar cookies opcionales",
+                            style = MaterialTheme.typography.titleMedium,
+                            fontWeight = FontWeight.Black,
+                            color = BelozColors.Ink
+                        )
+                        Spacer(modifier = Modifier.height(4.dp))
+                        Text(
+                            text = "Las esenciales permanecen activas para que Beloz funcione correctamente.",
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = BelozColors.MutedText
+                        )
+                    }
                     Switch(
                         checked = cookiesAccepted,
                         onCheckedChange = { cookiesAccepted = it },
                         colors = SwitchDefaults.colors(
-                            checkedThumbColor = Color(0xFFFFA500),
-                            uncheckedThumbColor = Color.White,
-                            checkedTrackColor = Color(0xFFFFA500),
-                            uncheckedTrackColor = Color.Gray
+                            checkedThumbColor = BelozColors.Ink,
+                            checkedTrackColor = BelozColors.Green,
+                            uncheckedThumbColor = BelozColors.MutedText,
+                            uncheckedTrackColor = BelozColors.SoftMint
                         )
                     )
                 }
@@ -128,5 +110,29 @@ fun CookiesPage(navController: NavController) {
     }
 }
 
-
-
+@Composable
+private fun InfoPanel(title: String, text: String) {
+    Surface(
+        modifier = Modifier.fillMaxWidth(),
+        shape = RoundedCornerShape(24.dp),
+        color = BelozColors.Card,
+        tonalElevation = 0.dp,
+        shadowElevation = 3.dp
+    ) {
+        Column(modifier = Modifier.padding(18.dp)) {
+            Text(
+                text = title,
+                style = MaterialTheme.typography.titleMedium,
+                fontWeight = FontWeight.Black,
+                color = BelozColors.Ink
+            )
+            Spacer(modifier = Modifier.height(8.dp))
+            Text(
+                text = text,
+                style = MaterialTheme.typography.bodyMedium,
+                color = BelozColors.MutedText,
+                textAlign = TextAlign.Start
+            )
+        }
+    }
+}

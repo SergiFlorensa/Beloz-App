@@ -141,10 +141,10 @@ fun SugerenciasContextualesSection(
             }
             Button(
                 onClick = { viewModel.refrescar(perfil) },
-                colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFFFA500)),
+                colors = ButtonDefaults.buttonColors(containerColor = BelozColors.Green),
                 modifier = Modifier.align(Alignment.CenterHorizontally)
             ) {
-                Text(text = "Actualizar estado", color = Color.Black)
+                Text(text = "Actualizar estado", color = BelozColors.Ink)
             }
         }
     }

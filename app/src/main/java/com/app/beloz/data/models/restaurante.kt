@@ -13,5 +13,6 @@ data class Restaurante(
     @SerializedName("es_popular") val esPopular: Boolean,
     @SerializedName("logo_restaurante") val logoRestaurante: String?,
     @SerializedName("relevancia") val relevancia: Int,
-    @SerializedName("valoracion") val valoracion: Double
+    @SerializedName("valoracion") val valoracion: Double,
+    var recomendacionMotivo: String? = null
 )

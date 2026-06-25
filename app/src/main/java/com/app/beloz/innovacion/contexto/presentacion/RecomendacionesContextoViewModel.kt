@@ -10,6 +10,7 @@ import com.app.beloz.innovacion.contexto.dominio.ContextoEntrada
 import com.app.beloz.innovacion.contexto.dominio.ConteoContextual
 import com.app.beloz.innovacion.contexto.dominio.EstadoClima
 import com.app.beloz.innovacion.contexto.dominio.MotorRecomendacionesContextuales
+import com.app.beloz.innovacion.contexto.dominio.MomentoDelDia
 import com.app.beloz.innovacion.contexto.dominio.PerfilSaborContextual
 import com.app.beloz.innovacion.contexto.dominio.SugerenciaContextual
 import com.app.beloz.innovacion.contexto.dominio.TipoDeDia
@@ -17,6 +18,7 @@ import com.app.beloz.innovacion.perfil.PerfilSabor
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
+import java.time.DayOfWeek
 
 class RecomendacionesContextoViewModel(
     private val proveedorContexto: ProveedorContextoLocal = ProveedorContextoLocal(),
@@ -61,9 +63,10 @@ class RecomendacionesContextoViewModel(
     }
 
     private fun construirDescripcion(contexto: ContextoEntrada): String {
-        val momento = contexto.momentoDelDia.name.lowercase().replaceFirstChar { it.uppercase() }
+        val momento = contexto.momentoDelDia.toDisplayName()
+        val dia = contexto.diaDeLaSemana.toDisplayName()
         val tipoDia = if (contexto.tipoDeDia == TipoDeDia.FIN_DE_SEMANA) "fin de semana" else "dia laborable"
-        return "$momento - ${contexto.diaDeLaSemana.name.lowercase()} - $tipoDia"
+        return "$momento - $dia - $tipoDia"
     }
 
     private fun construirDescripcionClima(clima: ContextoClima?): String {
@@ -88,6 +91,24 @@ class RecomendacionesContextoViewModel(
             topRestaurantes = topRestaurantes.map { ConteoContextual(it.clave, it.conteo) }
         )
     }
+}
+
+private fun MomentoDelDia.toDisplayName(): String = when (this) {
+    MomentoDelDia.MADRUGADA -> "Madrugada"
+    MomentoDelDia.MANHANA -> "Manana"
+    MomentoDelDia.MEDIODIA -> "Mediodia"
+    MomentoDelDia.TARDE -> "Tarde"
+    MomentoDelDia.NOCHE -> "Noche"
+}
+
+private fun DayOfWeek.toDisplayName(): String = when (this) {
+    DayOfWeek.MONDAY -> "lunes"
+    DayOfWeek.TUESDAY -> "martes"
+    DayOfWeek.WEDNESDAY -> "miercoles"
+    DayOfWeek.THURSDAY -> "jueves"
+    DayOfWeek.FRIDAY -> "viernes"
+    DayOfWeek.SATURDAY -> "sabado"
+    DayOfWeek.SUNDAY -> "domingo"
 }
 
 data class RecomendacionesContextoUiState(

@@ -15,6 +15,8 @@ import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.app.beloz.ui.components.BelozColors
+import com.app.beloz.ui.components.BelozTopAppBar
 import com.app.beloz.ui.components.RestauranteCard
 import com.app.beloz.ui.viewModel.RestaurantesViewModel
 
@@ -32,18 +34,10 @@ fun RelevanciaRestaurantes(navController: NavController) {
 
     Scaffold(
         topBar = {
-            TopAppBar(
-                title = { Text("Restaurantes - Relevancia", color = Color.White) },
-                navigationIcon = {
-                    IconButton(onClick = { navController.popBackStack() }) {
-                        Icon(Icons.Default.ArrowBack, contentDescription = "Volver", tint = Color.White)
-                    }
-                },
-                colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = Color(0xFF285346),
-                    titleContentColor = Color.White,
-                    navigationIconContentColor = Color.White
-                ),
+            BelozTopAppBar(
+                title = "Relevancia",
+                subtitle = "Restaurantes recomendados",
+                navController = navController
             )
         }
     ) { paddingValues ->
@@ -51,13 +45,13 @@ fun RelevanciaRestaurantes(navController: NavController) {
             modifier = Modifier
                 .padding(paddingValues)
                 .fillMaxSize()
-                .background(Color(0xFF285346))
+                .background(BelozColors.MintSurface)
                 .padding(16.dp)
         ) {
             when {
                 isLoading -> {
                     Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                        CircularProgressIndicator(color = Color.White)
+                        CircularProgressIndicator(color = BelozColors.Green)
                     }
                 }
                 errorMessage != null -> {

@@ -45,8 +45,8 @@ fun FloatingCartIcon(navController: NavController, cartViewModel: CartViewModel)
                 BadgedBox(
                     badge = {
                         Badge(
-                            containerColor = Color(0xFFFFA500),
-                            contentColor = Color.White
+                            containerColor = BelozColors.Green,
+                            contentColor = BelozColors.Ink
                         ) {
                             Text(text = itemCount.toString())
                         }
@@ -55,7 +55,7 @@ fun FloatingCartIcon(navController: NavController, cartViewModel: CartViewModel)
                     Icon(
                         painter = painterResource(id = R.drawable.carrito),
                         contentDescription = "Carrito",
-                        tint = Color.Black,
+                        tint = BelozColors.Ink,
                         modifier = Modifier.size(32.dp)
                     )
                 }

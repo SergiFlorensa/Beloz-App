@@ -4,9 +4,7 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -20,11 +18,12 @@ fun BotonRegistro(
     Button(
         onClick = onPressed ?: {},
         colors = ButtonDefaults.buttonColors(
-            containerColor = Color(0xFFFFA500),
-            contentColor = Color.Black
+            containerColor = BelozColors.Green,
+            contentColor = BelozColors.Ink
         ),
-        shape = RoundedCornerShape(8.dp),
+        shape = RoundedCornerShape(18.dp),
         modifier = Modifier
+            .fillMaxWidth()
             .padding(vertical = 8.dp),
         enabled = enabled
     ) {

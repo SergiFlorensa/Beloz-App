@@ -22,6 +22,7 @@ import com.app.beloz.innovacion.perfil.EventoUso
 import com.app.beloz.innovacion.perfil.PerfilSaborRepository
 import com.app.beloz.innovacion.perfil.TipoEvento
 import com.app.beloz.theme.DanfordFontFamily
+import kotlinx.coroutines.launch
 
 @Composable
 fun RestaurantesPopulares(navController: NavController) {

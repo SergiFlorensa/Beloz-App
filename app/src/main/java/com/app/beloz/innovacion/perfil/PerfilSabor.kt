@@ -15,23 +15,38 @@ data class PerfilSabor(
         fun fromEventos(eventos: List<EventoUso>): PerfilSabor {
             if (eventos.isEmpty()) return PerfilSabor()
 
+            val now = System.currentTimeMillis()
+            val dayInMs = 24 * 60 * 60 * 1000L
+            val sevenDaysInMs = 7 * dayInMs
+
             val tipos = mutableMapOf<String, Int>()
             val precios = mutableMapOf<String, Int>()
             val restaurantes = mutableMapOf<String, Int>()
 
             for (evento in eventos) {
-                val peso = pesoEvento(evento.tipo)
+                val weightByType = pesoEvento(evento.tipo)
+                
+                // Time decay: factor goes from 1.0 (now) to 0.7 (7 days ago) to 0.3 (older)
+                val timeDiff = now - evento.timestampMs
+                val timeFactor = when {
+                    timeDiff < dayInMs -> 1.0
+                    timeDiff < sevenDaysInMs -> 0.7
+                    else -> 0.3
+                }
+                
+                val finalWeight = (weightByType * timeFactor).toInt().coerceAtLeast(1)
+
                 val tipoComida = evento.metadata["food_type"]
                 if (!tipoComida.isNullOrBlank()) {
-                    tipos[tipoComida] = (tipos[tipoComida] ?: 0) + peso
+                    tipos[tipoComida] = (tipos[tipoComida] ?: 0) + finalWeight
                 }
                 val precio = evento.metadata["price_level"]
                 if (!precio.isNullOrBlank()) {
-                    precios[precio] = (precios[precio] ?: 0) + peso
+                    precios[precio] = (precios[precio] ?: 0) + finalWeight
                 }
                 val restauranteId = evento.metadata["restaurant_id"]
                 if (!restauranteId.isNullOrBlank()) {
-                    restaurantes[restauranteId] = (restaurantes[restauranteId] ?: 0) + peso
+                    restaurantes[restauranteId] = (restaurantes[restauranteId] ?: 0) + finalWeight
                 }
             }
 

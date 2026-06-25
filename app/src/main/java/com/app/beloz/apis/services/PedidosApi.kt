@@ -6,29 +6,28 @@ import com.google.gson.annotations.SerializedName
 import kotlinx.serialization.Serializable
 import retrofit2.http.Body
 import retrofit2.http.GET
-import retrofit2.http.Headers
 import retrofit2.http.POST
+import retrofit2.http.Path
 import retrofit2.http.Query
 
 interface PedidosApi {
-    @Headers("Prefer: return=representation")
-    @POST("pedidos")
-    suspend fun crearPedido(@Body pedido: CrearPedidoRequest): List<Pedido>
+    @POST("api/pedidos/crear")
+    suspend fun crearPedido(@Body pedido: CrearPedidoRequest): Pedido
 
-    @Headers("Prefer: return=minimal")
-    @POST("detalle_pedido")
-    suspend fun crearDetalles(@Body detalles: List<DetallePedidoInsertRequest>)
+    @POST("api/pedidos/{pedido_id}/detalles")
+    suspend fun crearDetalles(
+        @Path("pedido_id") pedidoId: Int,
+        @Body detalles: List<DetallePedidoInsertRequest>
+    ): List<DetallePedidoSupabase>
 
-    @GET("pedidos")
+    @GET("api/pedidos")
     suspend fun getPedidosPorUsuario(
-        @Query("user_id") userId: String,
-        @Query("order") order: String? = null
+        @Query("user_id") userId: Int
     ): List<Pedido>
 
-    @GET("detalle_pedido")
+    @GET("api/pedidos/{pedido_id}/detalles")
     suspend fun getDetallePedido(
-        @Query("pedido_id") pedidoId: String,
-        @Query("select") select: String = "id_detalle,pedido_id,plato_id,cantidad,precio,platos(name,restaurante(name))"
+        @Path("pedido_id") pedidoId: Int
     ): List<DetallePedidoSupabase>
 
     data class CrearPedidoRequest(
@@ -38,7 +37,7 @@ interface PedidosApi {
     )
 
     data class DetallePedidoInsertRequest(
-        @SerializedName("pedido_id") val pedidoId: Int,
+        @SerializedName("pedido_id") val pedidoId: Int? = null,
         @SerializedName("plato_id") val platoId: Int,
         @SerializedName("cantidad") val cantidad: Int,
         @SerializedName("precio") val precio: Double

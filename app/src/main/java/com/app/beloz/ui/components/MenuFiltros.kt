@@ -2,9 +2,7 @@ package com.app.beloz.ui.components
 
 import android.net.Uri
 import android.widget.Toast
-import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.rememberScrollState
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
@@ -13,7 +11,6 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import com.app.beloz.ui.viewModel.FilterViewModel
 import com.google.gson.Gson
-import com.app.beloz.theme.DanfordFontFamily
 
 @Composable
 fun MenuFiltros(navController: NavController, filterViewModel: FilterViewModel = viewModel()) {
@@ -60,17 +57,25 @@ fun MenuFiltros(navController: NavController, filterViewModel: FilterViewModel =
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(vertical = 8.dp)
-                .horizontalScroll(rememberScrollState()),
+                .padding(vertical = 8.dp),
             horizontalArrangement = Arrangement.spacedBy(8.dp)
         ) {
-            BotonFiltros(label = "Tipo de comida") {
+            BotonFiltros(
+                label = "Comida",
+                modifier = Modifier.weight(1.18f)
+            ) {
                 toggleDropdown("Tipo de comida")
             }
-            BotonFiltros(label = "Precio") {
+            BotonFiltros(
+                label = "Precio",
+                modifier = Modifier.weight(1f)
+            ) {
                 toggleDropdown("Precio")
             }
-            BotonFiltros(label = "Ordenar por") {
+            BotonFiltros(
+                label = "Ordenar",
+                modifier = Modifier.weight(1.08f)
+            ) {
                 toggleDropdown("Ordenar por")
             }
         }

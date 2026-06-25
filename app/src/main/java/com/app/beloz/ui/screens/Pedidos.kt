@@ -13,6 +13,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
+import com.app.beloz.ui.components.BelozColors
+import com.app.beloz.ui.components.BelozTopAppBar
 import com.app.beloz.ui.components.PedidoRecienteCard
 import com.app.beloz.ui.components.PedidoItem
 import com.app.beloz.ui.viewModel.PedidosViewModel
@@ -29,31 +31,19 @@ fun Pedidos(
 
     Scaffold(
         topBar = {
-            TopAppBar(
-                title = { Text("Pedidos", color = Color.Black) },
-                navigationIcon = {
-                    IconButton(onClick = { navController.popBackStack() }) {
-                        Icon(
-                            Icons.Default.ArrowBack,
-                            contentDescription = "Volver",
-                            tint = Color.Black
-                        )
-                    }
-                },
-                colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = Color.Transparent,
-                    titleContentColor = Color.Black,
-                    navigationIconContentColor = Color.Black
-                )
+            BelozTopAppBar(
+                title = "Pedidos",
+                subtitle = "Historial y seguimiento",
+                navController = navController
             )
         },
-        containerColor = Color.White
+        containerColor = BelozColors.MintSurface
     ) { paddingValues ->
         if (user == null) {
             Box(
                 modifier = Modifier
                     .fillMaxSize()
-                    .background(Color(0xFFF2F2F7)),
+                    .background(BelozColors.MintSurface),
                 contentAlignment = Alignment.Center
             ) {
                 Text(
@@ -74,7 +64,7 @@ fun Pedidos(
                 modifier = Modifier
                     .padding(paddingValues)
                     .fillMaxSize()
-                    .background(Color.White)
+                    .background(BelozColors.MintSurface)
             ) {
                 if (pedidos.isEmpty()) {
                     Box(

@@ -2,6 +2,9 @@ package com.app.beloz.ui.viewModel
 
 import android.app.Application
 import android.util.Log
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.setValue
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import com.app.beloz.data.models.User
@@ -10,7 +13,8 @@ import com.app.beloz.utils.SessionManager
 import kotlinx.coroutines.launch
 
 class AuthViewModel(application: Application) : AndroidViewModel(application) {
-    var user: User? = null
+    var user by mutableStateOf<User?>(null)
+        private set
     private val sessionManager = SessionManager.getInstance(application)
 
     init {

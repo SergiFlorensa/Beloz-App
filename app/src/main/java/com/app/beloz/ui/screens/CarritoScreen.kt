@@ -20,9 +20,12 @@ import androidx.navigation.NavController
 import com.app.beloz.innovacion.perfil.EventoUso
 import com.app.beloz.innovacion.perfil.PerfilSaborRepository
 import com.app.beloz.innovacion.perfil.TipoEvento
+import com.app.beloz.ui.components.BelozColors
+import com.app.beloz.ui.components.BelozTopAppBar
 import com.app.beloz.ui.viewModel.CartViewModel
 import com.app.beloz.ui.viewModel.AuthViewModel
 import com.app.beloz.ui.viewModel.PaymentViewModel
+import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -47,21 +50,17 @@ fun CarritoScreen(
     }
     Scaffold(
         topBar = {
-            TopAppBar(
-                title = { Text("Carrito", color = Color.White) },
-                navigationIcon = {
-                    IconButton(onClick = { navController.popBackStack() }) {
-                        Icon(Icons.Default.ArrowBack, contentDescription = "Volver", tint = Color.White)
-                    }
-                },
+            BelozTopAppBar(
+                title = "Carrito",
+                subtitle = if (carrito.isEmpty()) "Sin productos todavia" else "${carrito.sumOf { it.second }} productos",
+                navController = navController,
                 actions = {
                     if (carrito.isNotEmpty()) {
                         IconButton(onClick = { cartViewModel.clearCart() }) {
-                            Icon(Icons.Default.Delete, contentDescription = "Vaciar Carrito", tint = Color.White)
+                            Icon(Icons.Default.Delete, contentDescription = "Vaciar Carrito", tint = BelozColors.Ink)
                         }
                     }
-                },
-                colors = TopAppBarDefaults.topAppBarColors(containerColor = Color(0xFF285346), titleContentColor = Color.White),
+                }
             )
         }
     ) { paddingValues ->
@@ -69,7 +68,7 @@ fun CarritoScreen(
             modifier = Modifier
                 .padding(paddingValues)
                 .fillMaxSize()
-                .background(Color(0xFFF2F2F7))
+                .background(BelozColors.MintSurface)
         ) {
             if (carrito.isEmpty()) {
                 Box(
@@ -82,7 +81,7 @@ fun CarritoScreen(
                 LazyColumn(
                     modifier = Modifier
                         .weight(1f)
-                        .background(Color(0xFF285346))
+                        .background(BelozColors.MintSurface)
                 ) {
                     items(carrito) { (plato, cantidad) ->
                         Card(
@@ -132,7 +131,7 @@ fun CarritoScreen(
                 Column(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .background(Color(0xFF285346))
+                        .background(BelozColors.Ink)
                         .padding(16.dp)
                 ) {
 
@@ -156,9 +155,9 @@ fun CarritoScreen(
                         modifier = Modifier
                             .fillMaxWidth()
                             .padding(16.dp),
-                        colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFFFA500))
+                        colors = ButtonDefaults.buttonColors(containerColor = BelozColors.Green)
                     ) {
-                        Text("Confirmar Compra", color = Color.Black, fontWeight = FontWeight.Bold)
+                        Text("Confirmar Compra", color = BelozColors.Ink, fontWeight = FontWeight.Bold)
                     }
                 }
             }
@@ -204,15 +203,15 @@ fun CarritoScreen(
                             }
                         )
                     }) {
-                        Text("Confirmar", color = Color(0xFF285346))
+                        Text("Confirmar", color = BelozColors.Ink)
                     }
                 },
                 dismissButton = {
                     TextButton(onClick = { showConfirmDialog = false }) {
-                        Text("Cancelar", color = Color(0xFF285346))
+                        Text("Cancelar", color = BelozColors.Ink)
                     }
                 },
-                title = { Text("Confirmar Compra", color = Color(0xFF285346)) },
+                title = { Text("Confirmar Compra", color = BelozColors.Ink) },
                 text = {
                     Text(
                         "¿Estás seguro de que deseas confirmar la compra por un total de €${
@@ -231,10 +230,10 @@ fun CarritoScreen(
                 onDismissRequest = { showSuccessDialog = false },
                 confirmButton = {
                     TextButton(onClick = { showSuccessDialog = false }) {
-                        Text("Aceptar", color = Color(0xFF285346))
+                        Text("Aceptar", color = BelozColors.Ink)
                     }
                 },
-                title = { Text("Compra Realizada", color = Color(0xFF285346)) },
+                title = { Text("Compra Realizada", color = BelozColors.Ink) },
                 text = { Text("Tu compra ha sido realizada con éxito.", color = Color.Gray) }
             )
         }
@@ -244,10 +243,10 @@ fun CarritoScreen(
                 onDismissRequest = { errorMessage = "" },
                 confirmButton = {
                     TextButton(onClick = { errorMessage = "" }) {
-                        Text("Aceptar", color = Color(0xFF285346))
+                        Text("Aceptar", color = BelozColors.Ink)
                     }
                 },
-                title = { Text("Error", color = Color(0xFF285346)) },
+                title = { Text("Error", color = BelozColors.Ink) },
                 text = { Text(errorMessage, color = Color.Gray) }
             )
         }

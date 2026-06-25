@@ -12,8 +12,9 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
+import com.app.beloz.ui.components.BelozBottomBar
 import com.app.beloz.ui.components.EstablecimientoSection
-import com.app.beloz.ui.components.FloatingCartIcon
+import com.app.beloz.ui.components.HomeCommandCenter
 import com.app.beloz.ui.components.TablaPaises
 import com.app.beloz.ui.components.MenuFiltros
 import com.app.beloz.ui.components.RestaurantesPopulares
@@ -28,12 +29,15 @@ fun PagPrincipal(navController: NavController,cartViewModel: CartViewModel) {
     Scaffold(
         topBar = {
             TopBar(navController = navController, viewModel = viewModel)
+        },
+        bottomBar = {
+            BelozBottomBar(navController = navController, cartViewModel = cartViewModel)
         }
     ) { paddingValues ->
         Box(
             modifier = Modifier
                 .fillMaxSize()
-                .background(Color(0xFF71CD9D))
+                .background(Color(0xFFF4FAF6))
         ) {
             Column(
                 modifier = Modifier
@@ -44,8 +48,10 @@ fun PagPrincipal(navController: NavController,cartViewModel: CartViewModel) {
                 verticalArrangement = Arrangement.Top,
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
+                HomeCommandCenter(navController = navController)
+                Spacer(modifier = Modifier.height(10.dp))
                 MenuFiltros(navController = navController)
-                Spacer(modifier = Modifier.height(16.dp))
+                Spacer(modifier = Modifier.height(10.dp))
                 SugerenciasContextualesSection(navController = navController)
                 Spacer(modifier = Modifier.height(16.dp))
                 EstablecimientoSection(navController = navController)
@@ -53,13 +59,10 @@ fun PagPrincipal(navController: NavController,cartViewModel: CartViewModel) {
                 TablaPaises(navController = navController)
                 Spacer(modifier = Modifier.height(16.dp))
                 RestaurantesPopulares(navController = navController)
-                Spacer(modifier = Modifier.height(16.dp))
+                Spacer(modifier = Modifier.height(132.dp))
 
 
             }
-            FloatingCartIcon(navController = navController, cartViewModel = cartViewModel)
-            FloatingChatIcon(navController = navController)
-
         }
     }
 }

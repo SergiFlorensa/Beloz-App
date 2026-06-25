@@ -15,6 +15,8 @@ import androidx.compose.ui.unit.dp
 import androidx.navigation.NavHostController
 import com.app.beloz.data.models.Restaurante
 import com.app.beloz.data.repositories.RestauranteRepository
+import com.app.beloz.ui.components.BelozColors
+import com.app.beloz.ui.components.BelozTopAppBar
 import com.app.beloz.ui.components.RestauranteCard
 import com.app.beloz.theme.DanfordFontFamily
 import android.util.Log
@@ -41,18 +43,10 @@ fun ComidaPaisRestaurante(navController: NavHostController, country: String) {
 
     Scaffold(
         topBar = {
-            TopAppBar(
-                title = { Text("Nos vamos a: $country", color = Color.White, fontFamily = DanfordFontFamily) },
-                navigationIcon = {
-                    IconButton(onClick = { navController.popBackStack() }) {
-                        Icon(Icons.Default.ArrowBack, contentDescription = "Volver", tint = Color.White)
-                    }
-                },
-                colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = Color(0xFF285346),
-                    titleContentColor = Color.White,
-                    navigationIconContentColor = Color.White
-                ),
+            BelozTopAppBar(
+                title = "Nos vamos a $country",
+                subtitle = "Restaurantes por origen",
+                navController = navController
             )
         }
     ) { paddingValues ->
@@ -60,13 +54,13 @@ fun ComidaPaisRestaurante(navController: NavHostController, country: String) {
             modifier = Modifier
                 .padding(paddingValues)
                 .fillMaxSize()
-                .background(Color(0xFF285346))
+                .background(BelozColors.MintSurface)
                 .padding(16.dp)
         ) {
             when {
                 isLoading -> {
                     Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                        CircularProgressIndicator(color = Color.White)
+                        CircularProgressIndicator(color = BelozColors.Green)
                     }
                 }
                 errorMessage != null -> {
@@ -78,7 +72,7 @@ fun ComidaPaisRestaurante(navController: NavHostController, country: String) {
                     Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
                         Text(
                             "No hay restaurantes relacionados con este país.",
-                            color = Color.White,
+                            color = BelozColors.MutedText,
                             fontFamily = DanfordFontFamily
                         )
                     }

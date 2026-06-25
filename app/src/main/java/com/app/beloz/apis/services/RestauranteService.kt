@@ -1,11 +1,12 @@
 package com.app.beloz.apis.services
 
+import com.app.beloz.data.models.Plato
 import com.app.beloz.data.models.Restaurante
-import com.app.beloz.data.remote.SupabaseClient
+import com.app.beloz.data.remote.BelozApiClient
 
 class RestauranteService {
     private val restauranteApi: RestauranteApi by lazy {
-        SupabaseClient.retrofit.create(RestauranteApi::class.java)
+        BelozApiClient.retrofit.create(RestauranteApi::class.java)
     }
 
     suspend fun fetchRestaurantes(): List<Restaurante> {
@@ -13,49 +14,39 @@ class RestauranteService {
     }
 
     suspend fun fetchRestaurantesByCountry(country: String): List<Restaurante> {
-        return restauranteApi.fetchRestaurantes(country = "eq.$country")
+        return restauranteApi.fetchRestaurantes(country = country)
     }
 
     suspend fun fetchRestaurantesPopulares(): List<Restaurante> {
-        return restauranteApi.fetchRestaurantes(
-            esPopular = "eq.true",
-            order = "relevancia.desc"
-        )
+        return restauranteApi.fetchPopulares()
     }
 
     suspend fun searchRestaurantes(query: String): List<Restaurante> {
-        val clean = query.trim()
-        if (clean.isBlank()) return emptyList()
-        val or = "(name.ilike.*$clean*,type_of_food.ilike.*$clean*)"
-        return restauranteApi.fetchRestaurantes(or = or)
+        return restauranteApi.searchRestaurantes(query)
     }
 
     suspend fun getRestaurantesFiltradosPorTipos(types: List<String>): List<Restaurante> {
-        return restauranteApi.fetchRestaurantes(typeOfFood = buildInFilter(types))
+        if (types.isEmpty()) return emptyList()
+        return restauranteApi.fetchRestaurantesPorTipos(types.joinToString(","))
     }
+
     suspend fun getRestaurantesPorNivelPrecio(priceLevel: String): List<Restaurante> {
-        return restauranteApi.fetchRestaurantes(priceLevel = "eq.$priceLevel")
+        return restauranteApi.fetchRestaurantes()
     }
+
     suspend fun fetchRestaurantesPorValoracion(): List<Restaurante> {
-        return restauranteApi.fetchRestaurantes(order = "valoracion.desc")
+        return restauranteApi.fetchRestaurantes()
     }
 
     suspend fun fetchRestaurantesPorRelevancia(): List<Restaurante> {
-        return restauranteApi.fetchRestaurantes(order = "relevancia.desc")
-    }
-    suspend fun fetchRestaurantesInteres(): List<Restaurante> {
-        return restauranteApi.fetchRestaurantes(order = "relevancia.desc", limit = 10)
+        return restauranteApi.fetchPopulares()
     }
 
-    private fun buildInFilter(values: List<String>): String {
-        val encoded = values.map { value ->
-            val cleaned = value.trim()
-            if (cleaned.any { !it.isLetterOrDigit() && it != '_' && it != '-' }) {
-                "\"${cleaned.replace("\"", "\\\"")}\""
-            } else {
-                cleaned
-            }
-        }
-        return "in.(${encoded.joinToString(",")})"
+    suspend fun fetchRestaurantesInteres(): List<Restaurante> {
+        return restauranteApi.fetchPopulares()
+    }
+
+    suspend fun fetchPlatos(restauranteId: Int): List<Plato> {
+        return restauranteApi.fetchPlatos(restauranteId)
     }
 }

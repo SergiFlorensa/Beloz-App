@@ -63,6 +63,8 @@ import com.app.beloz.innovacion.chat.dominio.ChatMessage
 import com.app.beloz.innovacion.chat.dominio.ChatRole
 import com.app.beloz.innovacion.chat.dominio.ChatSuggestion
 import com.app.beloz.innovacion.chat.presentacion.BelozChatViewModel
+import com.app.beloz.ui.components.BelozColors
+import com.app.beloz.ui.components.BelozTopAppBar
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -82,26 +84,10 @@ fun BelozChatScreen(
 
     Scaffold(
         topBar = {
-            TopAppBar(
-                title = {
-                    Column {
-                        Text("Beloz AI", fontWeight = FontWeight.Bold)
-                        Text(
-                            text = "Asistente de pedidos",
-                            color = Color(0xFF45645B),
-                            fontSize = 12.sp
-                        )
-                    }
-                },
-                navigationIcon = {
-                    IconButton(onClick = { navController.popBackStack() }) {
-                        Text(text = "<", fontSize = 26.sp, fontWeight = FontWeight.Bold)
-                    }
-                },
-                colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = Color(0xFFF8FBF7),
-                    titleContentColor = Color(0xFF10211C)
-                )
+            BelozTopAppBar(
+                title = "Beloz AI",
+                subtitle = "Asistente de pedidos",
+                navController = navController
             )
         },
         bottomBar = {
@@ -119,9 +105,10 @@ fun BelozChatScreen(
         Column(
             modifier = Modifier
                 .fillMaxSize()
-                .background(Color(0xFFF8FBF7))
+                .background(BelozColors.MintSurface)
                 .padding(paddingValues)
         ) {
+            ChatHero()
             QuickPromptRow(
                 enabled = !estado.loading,
                 onPrompt = { prompt ->
@@ -161,10 +148,10 @@ fun BelozChatScreen(
                                     CircularProgressIndicator(
                                         modifier = Modifier.size(18.dp),
                                         strokeWidth = 2.dp,
-                                        color = Color(0xFF71CD9D)
+                                        color = BelozColors.Green
                                     )
                                     Spacer(modifier = Modifier.size(10.dp))
-                                    Text("Pensando...", color = Color(0xFF45645B))
+                                    Text("Preparando ideas...", color = BelozColors.MutedText)
                                 }
                             }
                         }
@@ -174,6 +161,58 @@ fun BelozChatScreen(
                 item {
                     Spacer(modifier = Modifier.height(10.dp))
                 }
+            }
+        }
+    }
+}
+
+@Composable
+private fun ChatHero() {
+    Surface(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = 14.dp, vertical = 8.dp),
+        shape = RoundedCornerShape(24.dp),
+        color = BelozColors.Ink,
+        shadowElevation = 4.dp
+    ) {
+        Row(
+            modifier = Modifier
+                .background(
+                    androidx.compose.ui.graphics.Brush.linearGradient(
+                        listOf(BelozColors.Ink, BelozColors.MutedGreen)
+                    )
+                )
+                .padding(16.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Surface(
+                shape = RoundedCornerShape(18.dp),
+                color = BelozColors.Green,
+                modifier = Modifier.size(54.dp)
+            ) {
+                Box(contentAlignment = Alignment.Center) {
+                    Image(
+                        painter = painterResource(id = R.drawable.chat_icon),
+                        contentDescription = "Beloz AI",
+                        modifier = Modifier.size(30.dp)
+                    )
+                }
+            }
+            Spacer(modifier = Modifier.size(12.dp))
+            Column(modifier = Modifier.weight(1f)) {
+                Text(
+                    text = "Pide con contexto",
+                    color = Color.White,
+                    fontWeight = FontWeight.Black,
+                    fontSize = 18.sp
+                )
+                Text(
+                    text = "Presupuesto, antojo, clima o prisa.",
+                    color = Color(0xFFD9E8DE),
+                    fontSize = 12.sp,
+                    maxLines = 1
+                )
             }
         }
     }
@@ -203,12 +242,13 @@ private fun QuickPromptRow(
             Surface(
                 color = Color.White,
                 shape = RoundedCornerShape(18.dp),
-                shadowElevation = 1.dp,
+                shadowElevation = 2.dp,
                 modifier = Modifier.clickable(enabled = enabled) { onPrompt(prompt) }
             ) {
                 Text(
                     text = prompt,
-                    color = Color(0xFF244A3D),
+                    color = BelozColors.Ink,
+                    fontWeight = FontWeight.SemiBold,
                     fontSize = 12.sp,
                     modifier = Modifier.padding(horizontal = 12.dp, vertical = 8.dp)
                 )
@@ -232,27 +272,27 @@ private fun ChatBubble(
             horizontalAlignment = if (isUser) Alignment.End else Alignment.Start
         ) {
             Surface(
-                color = if (isUser) Color(0xFF10211C) else Color.White,
+                color = if (isUser) BelozColors.Ink else Color.White,
                 shape = RoundedCornerShape(
                     topStart = 18.dp,
                     topEnd = 18.dp,
                     bottomStart = if (isUser) 18.dp else 4.dp,
                     bottomEnd = if (isUser) 4.dp else 18.dp
                 ),
-                shadowElevation = if (isUser) 0.dp else 2.dp
+                shadowElevation = if (isUser) 0.dp else 3.dp
             ) {
                 Column(modifier = Modifier.padding(14.dp)) {
                     Text(
                         text = message.text,
-                        color = if (isUser) Color.White else Color(0xFF10211C),
+                        color = if (isUser) Color.White else BelozColors.Ink,
                         fontSize = 14.sp,
                         lineHeight = 19.sp
                     )
                     if (!message.provider.isNullOrBlank() && !isUser) {
                         Spacer(modifier = Modifier.height(8.dp))
                         Text(
-                            text = if (message.provider == "ollama") "Gemma 12B local" else "Beloz motor local",
-                            color = Color(0xFF71CD9D),
+                            text = if (message.provider == "ollama") "IA local" else "Beloz motor local",
+                            color = BelozColors.Green,
                             fontSize = 11.sp,
                             fontWeight = FontWeight.Bold
                         )
@@ -310,7 +350,7 @@ private fun SuggestionCard(
             Column(modifier = Modifier.weight(1f)) {
                 Text(
                     text = suggestion.restauranteNombre,
-                    color = Color(0xFF10211C),
+                    color = BelozColors.Ink,
                     fontWeight = FontWeight.Bold,
                     fontSize = 14.sp
                 )
@@ -319,7 +359,7 @@ private fun SuggestionCard(
                 }
                 Text(
                     text = suggestion.motivo ?: "Recomendado por Beloz AI",
-                    color = Color(0xFF6B7D76),
+                    color = BelozColors.MutedText,
                     fontSize = 11.sp,
                     maxLines = 2
                 )
@@ -327,7 +367,7 @@ private fun SuggestionCard(
 
             Text(
                 text = ">",
-                color = Color(0xFF71CD9D),
+                color = BelozColors.Green,
                 fontWeight = FontWeight.Bold,
                 fontSize = 22.sp
             )
@@ -343,7 +383,7 @@ private fun ChatInputBar(
     onSend: () -> Unit
 ) {
     Surface(
-        color = Color(0xFFF8FBF7),
+        color = BelozColors.MintSurface,
         shadowElevation = 8.dp
     ) {
         Row(
@@ -367,11 +407,11 @@ private fun ChatInputBar(
             Button(
                 onClick = onSend,
                 enabled = value.isNotBlank() && !loading,
-                colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF71CD9D)),
+                colors = ButtonDefaults.buttonColors(containerColor = BelozColors.Green),
                 shape = CircleShape,
                 modifier = Modifier.size(52.dp)
             ) {
-                Text(">", color = Color.Black, fontWeight = FontWeight.Bold)
+                Text(">", color = BelozColors.Ink, fontWeight = FontWeight.Bold)
             }
         }
     }

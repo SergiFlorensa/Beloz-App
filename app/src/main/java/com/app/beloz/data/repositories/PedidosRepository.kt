@@ -30,13 +30,12 @@ object PedidosRepository {
                 if (pedidoId != null) {
                     val detallesInsert = detalles.map {
                         PedidosApi.DetallePedidoInsertRequest(
-                            pedidoId = pedidoId,
                             platoId = it.platoId,
                             cantidad = it.cantidad,
                             precio = it.precio
                         )
                     }
-                    pedidosService.crearDetalles(detallesInsert)
+                    pedidosService.crearDetalles(pedidoId, detallesInsert)
                 }
                 pedido
             } catch (e: Exception) {

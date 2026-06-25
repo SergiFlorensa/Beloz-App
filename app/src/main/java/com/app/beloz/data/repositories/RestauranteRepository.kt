@@ -32,7 +32,15 @@ object RestauranteRepository {
         return restaurantService.searchRestaurantes(query)
     }
     suspend fun getRestaurantesFiltradosPorTipos(types: List<String>): List<Restaurante> {
-        return restaurantService.getRestaurantesFiltradosPorTipos(types)
+        return try {
+            restaurantService.getRestaurantesFiltradosPorTipos(types)
+        } catch (e: HttpException) {
+            if (e.code() == 404) {
+                emptyList()
+            } else {
+                throw e
+            }
+        }
     }
     suspend fun getRestaurantesPorNivelPrecio(priceLevel: String): List<Restaurante> {
         return restaurantService.getRestaurantesPorNivelPrecio(priceLevel)

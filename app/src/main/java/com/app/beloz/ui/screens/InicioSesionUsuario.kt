@@ -3,15 +3,32 @@ package com.app.beloz.ui.screens
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.*
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.ArrowBack
-import androidx.compose.material3.*
-import androidx.compose.runtime.*
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.TextRange
 import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.input.TextFieldValue
@@ -22,11 +39,12 @@ import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import com.app.beloz.R
+import com.app.beloz.ui.components.BelozColors
+import com.app.beloz.ui.components.BelozTopAppBar
 import com.app.beloz.ui.components.BotonLogin
 import com.app.beloz.ui.components.InputField
 import com.app.beloz.ui.viewModel.AuthViewModel
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun InicioSesionUsuario(
     navController: NavController,
@@ -34,65 +52,52 @@ fun InicioSesionUsuario(
 ) {
     val emailController = remember { mutableStateOf(TextFieldValue()) }
     val passwordController = remember { mutableStateOf(TextFieldValue()) }
+    val forgotPasswordEmailController = remember { mutableStateOf(TextFieldValue()) }
 
     var errorMessage by remember { mutableStateOf("") }
+    var forgotPasswordError by remember { mutableStateOf("") }
     var showLoginSuccessDialog by remember { mutableStateOf(false) }
     var showForgotPasswordDialog by remember { mutableStateOf(false) }
     var showForgotPasswordSuccessDialog by remember { mutableStateOf(false) }
-    val forgotPasswordEmailController = remember { mutableStateOf(TextFieldValue()) }
-    var forgotPasswordError by remember { mutableStateOf("") }
 
     Scaffold(
+        containerColor = BelozColors.MintSurface,
         topBar = {
-            TopAppBar(
-                title = { Text("Iniciar Sesión", color = Color.White) },
-                navigationIcon = {
-                    IconButton(onClick = { navController.popBackStack() }) {
-                        Icon(
-                            imageVector = Icons.Default.ArrowBack,
-                            contentDescription = "Volver",
-                            tint = Color.White
-                        )
-                    }
-                },
-                colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = Color.Transparent,
-                    titleContentColor = Color.White,
-                    navigationIconContentColor = Color.White
-                ),
+            BelozTopAppBar(
+                title = "Iniciar sesion",
+                subtitle = "Accede a tus pedidos",
+                navController = navController
             )
         }
     ) { paddingValues ->
         Box(
             modifier = Modifier
                 .fillMaxSize()
-                .background(Color(0xFF285346))
+                .background(BelozColors.MintSurface)
                 .padding(paddingValues)
         ) {
             Column(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(start = 32.dp, end = 32.dp)
-                    .padding(bottom = 32.dp),
+                    .padding(start = 32.dp, end = 32.dp, bottom = 32.dp),
                 verticalArrangement = Arrangement.Top,
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
                 Image(
                     painter = painterResource(id = R.drawable.iconoapp),
                     contentDescription = "Logo",
-                    modifier = Modifier.size(160.dp)
+                    modifier = Modifier.size(150.dp)
                 )
 
                 Text(
-                    text = "¡Hola, Bienvenido!",
-                    color = Color.White,
+                    text = "Hola, bienvenido",
+                    color = BelozColors.Ink,
                     fontSize = 24.sp,
                     modifier = Modifier.padding(vertical = 1.dp)
                 )
-
                 Text(
-                    text = "Inicia sesión para continuar",
-                    color = Color.Gray,
+                    text = "Inicia sesion para continuar",
+                    color = BelozColors.MutedText,
                     fontSize = 16.sp,
                     modifier = Modifier.padding(vertical = 4.dp)
                 )
@@ -102,10 +107,9 @@ fun InicioSesionUsuario(
                 InputField(
                     value = emailController.value,
                     onValueChange = { emailController.value = it },
-                    placeholder = "Correo Electrónico",
+                    placeholder = "Correo electronico",
                     icon = R.drawable.email
                 )
-
                 InputField(
                     value = passwordController.value,
                     onValueChange = { input ->
@@ -115,16 +119,15 @@ fun InicioSesionUsuario(
                             selection = TextRange(filteredText.length)
                         )
                     },
-                    placeholder = "Contraseña",
+                    placeholder = "Contrasena",
                     icon = R.drawable.password,
                     isPassword = true
                 )
 
-
                 Spacer(modifier = Modifier.height(20.dp))
 
                 if (errorMessage.isNotEmpty()) {
-                    Text(text = errorMessage, color = Color(0xFFFFA500), fontSize = 14.sp)
+                    Text(text = errorMessage, color = BelozColors.Orange, fontSize = 14.sp)
                 }
 
                 BotonLogin(
@@ -141,14 +144,14 @@ fun InicioSesionUsuario(
                             onError = { error -> errorMessage = error }
                         )
                     },
-                    text = "Iniciar Sesión"
+                    text = "Iniciar sesion"
                 )
 
                 Spacer(modifier = Modifier.height(16.dp))
 
                 Text(
-                    text = "¿Olvidaste tu contraseña?",
-                    color = Color(0xFFFFA500),
+                    text = "Olvidaste tu contrasena?",
+                    color = BelozColors.MutedGreen,
                     modifier = Modifier.clickable { showForgotPasswordDialog = true }
                 )
 
@@ -156,12 +159,16 @@ fun InicioSesionUsuario(
 
                 Text(
                     text = buildAnnotatedString {
-                        withStyle(style = androidx.compose.ui.text.SpanStyle(color = Color.White)) {
-                            append("¿No tienes cuenta? ")
+                        withStyle(style = SpanStyle(color = BelozColors.Ink)) {
+                            append("No tienes cuenta? ")
                         }
-
-                        withStyle(style = androidx.compose.ui.text.SpanStyle(textDecoration = TextDecoration.Underline, color = Color(0xFFFFA500))) {
-                            append("Regístrate aquí.")
+                        withStyle(
+                            style = SpanStyle(
+                                textDecoration = TextDecoration.Underline,
+                                color = BelozColors.MutedGreen
+                            )
+                        ) {
+                            append("Registrate aqui.")
                         }
                     },
                     modifier = Modifier.clickable { navController.navigate("usuario_registro") }
@@ -173,39 +180,42 @@ fun InicioSesionUsuario(
                         confirmButton = {
                             Button(
                                 onClick = {
-                                    if (forgotPasswordEmailController.value.text.isNotEmpty() &&
-                                        android.util.Patterns.EMAIL_ADDRESS.matcher(forgotPasswordEmailController.value.text).matches()
+                                    if (
+                                        forgotPasswordEmailController.value.text.isNotEmpty() &&
+                                        android.util.Patterns.EMAIL_ADDRESS
+                                            .matcher(forgotPasswordEmailController.value.text)
+                                            .matches()
                                     ) {
                                         showForgotPasswordDialog = false
                                         forgotPasswordError = ""
                                         showForgotPasswordSuccessDialog = true
                                     } else {
-                                        forgotPasswordError = "Correo electrónico incorrecto"
+                                        forgotPasswordError = "Correo electronico incorrecto"
                                     }
                                 },
-                                colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFFFA500))
+                                colors = ButtonDefaults.buttonColors(containerColor = BelozColors.Green)
                             ) {
-                                Text("Enviar", color = Color.White)
+                                Text("Enviar", color = BelozColors.Ink)
                             }
                         },
                         dismissButton = {
                             TextButton(onClick = { showForgotPasswordDialog = false }) {
-                                Text("Cancelar", color = Color(0xFFFFA500))
+                                Text("Cancelar", color = BelozColors.Ink)
                             }
                         },
-                        title = { Text("Restablecer Contraseña", color = Color.Black) },
+                        title = { Text("Restablecer contrasena", color = BelozColors.Ink) },
                         text = {
                             Column {
                                 Text(
-                                    text = "Introduce tu correo electrónico para restablecer tu contraseña.",
-                                    color = Color.Black,
+                                    text = "Introduce tu correo electronico para restablecer tu contrasena.",
+                                    color = BelozColors.Ink,
                                     fontSize = 16.sp
                                 )
                                 Spacer(modifier = Modifier.height(8.dp))
                                 OutlinedTextField(
                                     value = forgotPasswordEmailController.value,
                                     onValueChange = { forgotPasswordEmailController.value = it },
-                                    label = { Text("Correo Electrónico") },
+                                    label = { Text("Correo electronico") },
                                     singleLine = true,
                                     isError = forgotPasswordError.isNotEmpty()
                                 )
@@ -223,11 +233,16 @@ fun InicioSesionUsuario(
                         onDismissRequest = { showForgotPasswordSuccessDialog = false },
                         confirmButton = {
                             TextButton(onClick = { showForgotPasswordSuccessDialog = false }) {
-                                Text("Aceptar", color = Color(0xFFFFA500))
+                                Text("Aceptar", color = BelozColors.Ink)
                             }
                         },
-                        title = { Text("Restablecimiento de Contraseña", color = Color.Black) },
-                        text = { Text("Compruebe su correo electrónico para modificar el password", color = Color.Gray) },
+                        title = { Text("Restablecimiento de contrasena", color = BelozColors.Ink) },
+                        text = {
+                            Text(
+                                "Comprueba tu correo electronico para modificar la contrasena.",
+                                color = BelozColors.MutedText
+                            )
+                        },
                         containerColor = Color.White
                     )
                 }
@@ -243,25 +258,13 @@ fun InicioSesionUsuario(
                                         popUpTo("InicioSesionUsuario") { inclusive = true }
                                     }
                                 },
-                                colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFFFA500))
+                                colors = ButtonDefaults.buttonColors(containerColor = BelozColors.Green)
                             ) {
-                                Text("Continuar", color = Color.White)
+                                Text("Continuar", color = BelozColors.Ink)
                             }
                         },
-                        title = {
-                            Text(
-                                text = "¡Bienvenido!",
-                                color = Color.Black,
-                                fontSize = 20.sp
-                            )
-                        },
-                        text = {
-                            Text(
-                                text = "Has iniciado sesión correctamente.",
-                                color = Color.Black,
-                                fontSize = 16.sp
-                            )
-                        },
+                        title = { Text(text = "Bienvenido", color = BelozColors.Ink, fontSize = 20.sp) },
+                        text = { Text(text = "Has iniciado sesion correctamente.", color = BelozColors.MutedText) },
                         containerColor = Color.White
                     )
                 }

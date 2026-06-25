@@ -18,8 +18,11 @@ import androidx.navigation.NavController
 import com.app.beloz.innovacion.perfil.EventoUso
 import com.app.beloz.innovacion.perfil.PerfilSaborRepository
 import com.app.beloz.innovacion.perfil.TipoEvento
+import com.app.beloz.ui.components.BelozColors
+import com.app.beloz.ui.components.BelozTopAppBar
 import com.app.beloz.ui.components.RestauranteCard
 import com.app.beloz.ui.viewModel.RestaurantesViewModel
+import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -34,38 +37,22 @@ fun ListaRestaurantes(
 
     val restaurantes by viewModel.restaurantes.collectAsState(initial = emptyList())
 
-    val filteredRestaurantes = if (searchQuery.isNotEmpty()) {
-        restaurantes.filter { restaurante ->
-            (restaurante.typeOfFood?.contains(searchQuery, ignoreCase = true) == true) ||
-                    (restaurante.name?.contains(searchQuery, ignoreCase = true) == true)
+    LaunchedEffect(searchQuery) {
+        if (searchQuery.isNotBlank()) {
+            viewModel.buscarRestaurantes(searchQuery)
+        } else {
+            viewModel.cargarRestaurantes()
         }
-    } else {
-        restaurantes
     }
+
+    val filteredRestaurantes = restaurantes
 
     Scaffold(
         topBar = {
-            TopAppBar(
-                title = {
-                    val title = if (searchQuery.isEmpty()) {
-                        "Restaurantes"
-                    } else {
-                        "Resultados para \"$searchQuery\""
-                    }
-                    Text(title, color = Color.White)
-                },
-
-                navigationIcon = {
-                    IconButton(onClick = { navController.popBackStack() }) {
-                        Icon(Icons.Default.ArrowBack, contentDescription = "Volver", tint = Color.White)
-                    }
-                },
-                colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = Color(0xFF285346),
-                    titleContentColor = Color.Black,
-                    navigationIconContentColor = Color.Black
-                ),
-                modifier = Modifier.padding(top = 0.dp)
+            BelozTopAppBar(
+                title = if (searchQuery.isEmpty()) "Restaurantes" else "Resultados",
+                subtitle = if (searchQuery.isEmpty()) "Locales disponibles" else "\"$searchQuery\"",
+                navController = navController
             )
         }
     ) { paddingValues ->
@@ -73,7 +60,7 @@ fun ListaRestaurantes(
             modifier = Modifier
                 .padding(paddingValues)
                 .fillMaxSize()
-                .background(Color(0xFF285346))
+                .background(BelozColors.MintSurface)
                 .padding(16.dp)
         ) {
             if (filteredRestaurantes.isEmpty()) {
@@ -84,7 +71,7 @@ fun ListaRestaurantes(
                     Text(
                         text = "No hay restaurantes disponibles",
                         modifier = Modifier.padding(16.dp),
-                        color = Color.White
+                        color = BelozColors.MutedText
                     )
                 }
             } else {
@@ -99,6 +86,7 @@ fun ListaRestaurantes(
                             country = restaurante.country,
                             valoracion = restaurante.valoracion,
                             relevancia = restaurante.relevancia,
+                            recomendacionMotivo = restaurante.recomendacionMotivo,
                             onClick = {
                                 scope.launch {
                                     perfilRepo.registrarEvento(

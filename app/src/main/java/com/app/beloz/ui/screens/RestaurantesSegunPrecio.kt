@@ -1,24 +1,31 @@
 package com.app.beloz.ui.screens
 
 import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.ArrowBack
-import androidx.compose.material3.*
-import androidx.compose.runtime.*
+import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Text
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
-import androidx.navigation.NavController
-import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.navigation.NavController
+import com.app.beloz.ui.components.BelozColors
+import com.app.beloz.ui.components.BelozTopAppBar
 import com.app.beloz.ui.components.RestauranteCard
 import com.app.beloz.ui.viewModel.RestaurantesViewModel
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun RestaurantesSegunPrecio(selectedPrice: String?, navController: NavController) {
     val viewModel: RestaurantesViewModel = viewModel()
@@ -41,18 +48,10 @@ fun RestaurantesSegunPrecio(selectedPrice: String?, navController: NavController
 
     Scaffold(
         topBar = {
-            TopAppBar(
-                title = { Text("Restaurantes - $selectedPrice", color = Color.White) },
-                navigationIcon = {
-                    IconButton(onClick = { navController.popBackStack() }) {
-                        Icon(Icons.Default.ArrowBack, contentDescription = "Volver", tint = Color.White)
-                    }
-                },
-                colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = Color(0xFF285346),
-                    titleContentColor = Color.Black,
-                    navigationIconContentColor = Color.Black
-                ),
+            BelozTopAppBar(
+                title = selectedPrice ?: "Precio",
+                subtitle = "Restaurantes por presupuesto",
+                navController = navController
             )
         }
     ) { paddingValues ->
@@ -60,20 +59,20 @@ fun RestaurantesSegunPrecio(selectedPrice: String?, navController: NavController
             modifier = Modifier
                 .padding(paddingValues)
                 .fillMaxSize()
-                .background(Color(0xFF285346))
+                .background(BelozColors.MintSurface)
                 .padding(16.dp)
         ) {
             when {
                 isLoading -> {
                     Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                        CircularProgressIndicator()
+                        CircularProgressIndicator(color = BelozColors.Green)
                     }
                 }
                 errorMessage != null -> {
                     Text("Error: $errorMessage", modifier = Modifier.padding(16.dp), color = Color.Red)
                 }
                 restaurantes.isEmpty() -> {
-                    Text("No hay restaurantes disponibles", modifier = Modifier.padding(16.dp), color = Color.Gray)
+                    Text("No hay restaurantes disponibles", modifier = Modifier.padding(16.dp), color = BelozColors.MutedText)
                 }
                 else -> {
                     LazyColumn(

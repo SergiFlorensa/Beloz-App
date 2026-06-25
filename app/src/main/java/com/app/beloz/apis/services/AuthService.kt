@@ -1,11 +1,11 @@
 package com.app.beloz.apis.services
 
 import com.app.beloz.data.models.User
-import com.app.beloz.data.remote.SupabaseClient
+import com.app.beloz.data.remote.BelozApiClient
 
 class AuthService {
     private val authApi: AuthApi by lazy {
-        SupabaseClient.retrofit.create(AuthApi::class.java)
+        BelozApiClient.retrofit.create(AuthApi::class.java)
     }
 
     suspend fun register(
@@ -15,79 +15,51 @@ class AuthService {
         password: String,
         numTelefono: String
     ): User {
-        val existing = authApi.fetchUsuarios(emailFilter = eq(email))
-        if (existing.isNotEmpty()) {
-            throw Exception("El email ya est· registrado.")
-        }
         val insert = SupabaseUserInsert(
             name = name,
             surname = surname,
             email = email,
-            password = password,
+            passwordHash = password, // El backend se encarga del hash
             numTelefono = numTelefono
         )
-        val created = authApi.crearUsuario(insert)
-        return created.firstOrNull()?.toUser()
-            ?: throw Exception("No se pudo registrar el usuario.")
+        val response = authApi.crearUsuario(insert)
+        return User(
+            idUser = response.id ?: response.idUser ?: response.userId ?: 0,
+            email = response.email ?: email,
+            name = response.name ?: name,
+            surname = response.surname ?: surname,
+            token = null,
+            numTelefono = response.numTelefono ?: numTelefono
+        )
     }
 
     suspend fun login(email: String, password: String): User {
-        val usuarios = authApi.fetchUsuarios(
-            emailFilter = eq(email),
-            passwordFilter = eq(password)
+        val response = authApi.login(mapOf("email" to email, "password" to password))
+        val userId = response.userId ?: response.id ?: response.idUser ?: throw Exception("Login fallido")
+
+        return User(
+            idUser = userId,
+            email = response.email ?: email,
+            name = response.name.orEmpty(),
+            surname = response.surname.orEmpty(),
+            token = response.token,
+            numTelefono = response.numTelefono.orEmpty()
         )
-        return usuarios.firstOrNull()?.toUser()
-            ?: throw Exception("Credenciales incorrectas.")
     }
 
     suspend fun updateEmail(userId: Int, newEmail: String): User {
-        val updated = authApi.actualizarUsuario(
-            idFilter = eq(userId),
-            body = mapOf("email" to newEmail)
-        )
-        return updated.firstOrNull()?.toUser() ?: throw Exception("No se pudo actualizar el correo.")
+        throw Exception("Funcionalidad de actualizaci√≥n de perfil pendiente en backend unificado.")
     }
 
     suspend fun updatePassword(userId: Int, currentPassword: String, newPassword: String) {
-        val usuario = authApi.fetchUsuarios(idFilter = eq(userId)).firstOrNull()
-            ?: throw Exception("Usuario no encontrado.")
-        if (usuario.password.isNullOrBlank() || usuario.password != currentPassword) {
-            throw Exception("La contraseÒa actual es incorrecta.")
-        }
-        val updated = authApi.actualizarUsuario(
-            idFilter = eq(userId),
-            body = mapOf("password" to newPassword)
-        )
-        if (updated.isEmpty()) {
-            throw Exception("No se pudo actualizar la contraseÒa.")
-        }
+        throw Exception("Funcionalidad de actualizaci√≥n de contrase√±a pendiente en backend unificado.")
     }
 
     suspend fun updatePhoneNumber(userId: Int, numTelefono: String): User {
-        val updated = authApi.actualizarUsuario(
-            idFilter = eq(userId),
-            body = mapOf("num_telefono" to numTelefono)
-        )
-        return updated.firstOrNull()?.toUser() ?: throw Exception("No se pudo actualizar el telÈfono.")
+        throw Exception("Funcionalidad de actualizaci√≥n de tel√©fono pendiente en backend unificado.")
     }
 
     suspend fun deleteUser(userId: Int) {
-        authApi.eliminarUsuario(eq(userId))
+        // Implementar en backend si se requiere
     }
-
-    private fun eq(value: Any): String = "eq.$value"
-}
-
-private fun SupabaseUserDto.toUser(): User {
-    if (idUser == null || email.isNullOrBlank()) {
-        throw Exception("Usuario inv·lido.")
-    }
-    return User(
-        idUser = idUser,
-        email = email,
-        name = name.orEmpty(),
-        surname = surname.orEmpty(),
-        token = token,
-        numTelefono = numTelefono
-    )
 }

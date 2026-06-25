@@ -1,148 +1,167 @@
 package com.app.beloz.ui.screens
 
-import android.util.Log
 import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.*
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.ArrowBack
-import androidx.compose.material3.*
-import androidx.compose.runtime.*
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.OutlinedButton
+import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Surface
+import androidx.compose.material3.Text
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.font.FontFamily
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import com.app.beloz.R
+import com.app.beloz.ui.components.BelozColors
+import com.app.beloz.ui.components.BelozTopAppBar
 import com.app.beloz.ui.components.InputField
 import com.app.beloz.ui.viewModel.AuthViewModel
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ModificacionTelefono(navController: NavController, authViewModel: AuthViewModel) {
     val currentPhoneNumber = authViewModel.user?.numTelefono ?: ""
-    Log.d("ModificacionTelefono", "Current phone number: $currentPhoneNumber")
-
     var newPhoneNumber by remember { mutableStateOf(TextFieldValue(currentPhoneNumber)) }
     var errorMessage by remember { mutableStateOf("") }
     var successMessage by remember { mutableStateOf("") }
 
     Scaffold(
         topBar = {
-            TopAppBar(
-                title = { Text("Modificar Número de Teléfono", color = Color.White) },
-                navigationIcon = {
-                    IconButton(onClick = { navController.popBackStack() }) {
-                        Icon(
-                            imageVector = Icons.Default.ArrowBack,
-                            contentDescription = "Volver",
-                            tint = Color.White
-                        )
-                    }
-                },
-                colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = Color.Transparent,
-                    titleContentColor = Color.White,
-                    navigationIconContentColor = Color.White
-                ),
-                modifier = Modifier.padding(top = 16.dp)
+            BelozTopAppBar(
+                title = "Telefono",
+                subtitle = "Numero de contacto",
+                navController = navController
             )
         }
     ) { paddingValues ->
-        Box(
+        Column(
             modifier = Modifier
                 .fillMaxSize()
-                .background(Color(0xFF285346))
+                .background(BelozColors.MintSurface)
                 .padding(paddingValues)
+                .padding(16.dp),
+            horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            Column(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(horizontal = 16.dp)
-                    .align(Alignment.TopCenter),
-                verticalArrangement = Arrangement.Top,
-                horizontalAlignment = Alignment.CenterHorizontally
+            Surface(
+                modifier = Modifier.fillMaxWidth(),
+                shape = RoundedCornerShape(26.dp),
+                color = Color.White,
+                shadowElevation = 3.dp
             ) {
-                Text(
-                    text = "Número Actual: ",
-                    color = Color.White,
-                    fontSize = 16.sp,
-                    modifier = Modifier.padding(vertical = 8.dp)
-                )
-                Text(
-                    text = currentPhoneNumber,
-                    color = Color.Gray,
-                    fontSize = 16.sp,
-                    modifier = Modifier.padding(bottom = 16.dp)
-                )
-
-                InputField(
-                    value = newPhoneNumber,
-                    onValueChange = {
-                        if (it.text.length <= 9) {
-                            newPhoneNumber = it
-                        }
-                    },
-                    placeholder = "Nuevo Número de Teléfono",
-                    icon = R.drawable.telefono,
-                    enabled = true
-                )
-
-                Spacer(modifier = Modifier.height(12.dp))
-
-                if (errorMessage.isNotEmpty()) {
-                    Text(text = errorMessage, color = Color(0xFFFFA500), fontSize = 14.sp)
-                }
-                if (successMessage.isNotEmpty()) {
-                    Text(text = successMessage, color = Color.Green, fontSize = 14.sp)
-                }
-
-                Spacer(modifier = Modifier.height(12.dp))
-
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.Center
+                Column(
+                    modifier = Modifier.padding(18.dp),
+                    horizontalAlignment = Alignment.CenterHorizontally
                 ) {
-                    Button(
-                        onClick = {
-                            navController.popBackStack()
-                        },
-                        colors = ButtonDefaults.buttonColors(containerColor = Color.Gray),
-                        modifier = Modifier.padding(end = 8.dp)
-                    ) {
-                        Text("Cancelar", color = Color.White)
-                    }
+                    Text(
+                        text = "Numero actual",
+                        color = BelozColors.MutedText,
+                        fontSize = 13.sp,
+                        fontFamily = FontFamily.SansSerif,
+                        fontWeight = FontWeight.SemiBold
+                    )
+                    Text(
+                        text = currentPhoneNumber.ifBlank { "No disponible" },
+                        color = BelozColors.Ink,
+                        fontSize = 18.sp,
+                        fontFamily = FontFamily.SansSerif,
+                        fontWeight = FontWeight.Black,
+                        modifier = Modifier.padding(top = 4.dp, bottom = 18.dp)
+                    )
 
-                    Button(
-                        onClick = {
-                            val trimmedPhoneNumber = newPhoneNumber.text.trim()
-                            if (trimmedPhoneNumber.isBlank()) {
-                                errorMessage = "El número de teléfono no puede estar vacío."
-                                successMessage = ""
-                            } else if (trimmedPhoneNumber.length != 9 || !trimmedPhoneNumber.all { it.isDigit() }) {
-                                errorMessage = "El número de teléfono debe tener 9 dígitos y solo contener números."
-                                successMessage = ""
-                            } else {
-                                authViewModel.updatePhoneNumber(
-                                    numTelefono = trimmedPhoneNumber,
-                                    onSuccess = {
-                                        successMessage = "Número de teléfono actualizado exitosamente."
-                                        errorMessage = ""
-                                    },
-                                    onError = { error ->
-                                        errorMessage = error
-                                        successMessage = ""
-                                    }
-                                )
+                    InputField(
+                        value = newPhoneNumber,
+                        onValueChange = {
+                            if (it.text.length <= 9) {
+                                newPhoneNumber = it
                             }
                         },
-                        colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFFFA500))
+                        placeholder = "Nuevo numero de telefono",
+                        icon = R.drawable.telefono,
+                        enabled = true
+                    )
+
+                    StatusText(errorMessage = errorMessage, successMessage = successMessage)
+
+                    Spacer(modifier = Modifier.height(14.dp))
+
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.spacedBy(10.dp)
                     ) {
-                        Text("Guardar", color = Color.Black)
+                        OutlinedButton(
+                            onClick = { navController.popBackStack() },
+                            modifier = Modifier
+                                .weight(1f)
+                                .height(48.dp),
+                            shape = RoundedCornerShape(16.dp)
+                        ) {
+                            Text("Cancelar", color = BelozColors.Ink, fontWeight = FontWeight.Bold)
+                        }
+                        Button(
+                            onClick = {
+                                val trimmedPhoneNumber = newPhoneNumber.text.trim()
+                                if (trimmedPhoneNumber.isBlank()) {
+                                    errorMessage = "El numero de telefono no puede estar vacio."
+                                    successMessage = ""
+                                } else if (trimmedPhoneNumber.length != 9 || !trimmedPhoneNumber.all { it.isDigit() }) {
+                                    errorMessage = "El numero de telefono debe tener 9 digitos."
+                                    successMessage = ""
+                                } else {
+                                    authViewModel.updatePhoneNumber(
+                                        numTelefono = trimmedPhoneNumber,
+                                        onSuccess = {
+                                            successMessage = "Telefono actualizado correctamente."
+                                            errorMessage = ""
+                                        },
+                                        onError = { error ->
+                                            errorMessage = error
+                                            successMessage = ""
+                                        }
+                                    )
+                                }
+                            },
+                            modifier = Modifier
+                                .weight(1f)
+                                .height(48.dp),
+                            shape = RoundedCornerShape(16.dp),
+                            colors = ButtonDefaults.buttonColors(
+                                containerColor = BelozColors.Green,
+                                contentColor = BelozColors.Ink
+                            )
+                        ) {
+                            Text("Guardar", fontWeight = FontWeight.Black)
+                        }
                     }
                 }
             }
         }
+    }
+}
+
+@Composable
+private fun StatusText(errorMessage: String, successMessage: String) {
+    if (errorMessage.isNotEmpty()) {
+        Text(text = errorMessage, color = Color(0xFFE24D4D), fontSize = 13.sp)
+    }
+    if (successMessage.isNotEmpty()) {
+        Text(text = successMessage, color = BelozColors.MutedGreen, fontSize = 13.sp)
     }
 }

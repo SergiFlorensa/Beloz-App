@@ -35,7 +35,7 @@ fun InputField(
         placeholder = {
             Text(
                 text = placeholder,
-                color = if (enabled) Color(0xFFB0BEC5) else Color.Gray.copy(alpha = 0.5f),
+                color = if (enabled) BelozColors.MutedText else Color.Gray.copy(alpha = 0.5f),
                 style = MaterialTheme.typography.bodyMedium,
                 fontFamily = DanfordFontFamily
             )
@@ -45,14 +45,14 @@ fun InputField(
             unfocusedIndicatorColor = Color.Transparent,
             focusedContainerColor = if (enabled) Color.White else Color.Gray.copy(alpha = 0.2f),
             unfocusedContainerColor = if (enabled) Color.White else Color.Gray.copy(alpha = 0.2f),
-            focusedTextColor = if (enabled) Color.Black else Color.Gray,
-            unfocusedTextColor = if (enabled) Color.Black else Color.Gray
+            focusedTextColor = if (enabled) BelozColors.Ink else Color.Gray,
+            unfocusedTextColor = if (enabled) BelozColors.Ink else Color.Gray
         ),
         leadingIcon = {
             Icon(
                 painter = painterResource(id = icon),
                 contentDescription = null,
-                tint = if (enabled) Color(0xFFB0BEC5) else Color.Gray.copy(alpha = 0.5f),
+                tint = if (enabled) BelozColors.MutedGreen else Color.Gray.copy(alpha = 0.5f),
                 modifier = Modifier.size(24.dp)
             )
         },
@@ -60,11 +60,11 @@ fun InputField(
         modifier = modifier
             .padding(vertical = 8.dp)
             .widthIn(max = 300.dp)
-            .border(BorderStroke(1.dp, Color(0xFFE0E0E0)), shape = RoundedCornerShape(12.dp))
+            .border(BorderStroke(1.dp, BelozColors.SoftMint), shape = RoundedCornerShape(16.dp))
             .height(60.dp),
         singleLine = singleLine,
         textStyle = TextStyle(fontSize = textSize.sp),
         enabled = enabled,
-        shape = RoundedCornerShape(12.dp)
+        shape = RoundedCornerShape(16.dp)
     )
 }

@@ -1,22 +1,33 @@
 package com.app.beloz.ui.screens
 
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.ArrowBack
-import androidx.compose.material3.*
-import androidx.compose.runtime.*
+import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Text
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
+import com.app.beloz.ui.components.BelozColors
+import com.app.beloz.ui.components.BelozTopAppBar
 import com.app.beloz.ui.components.DetallePedidoItem
 import com.app.beloz.ui.viewModel.AuthViewModel
 import com.app.beloz.ui.viewModel.PedidosViewModel
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun DetallesPedido(
     navController: NavController,
@@ -30,49 +41,61 @@ fun DetallesPedido(
 
     if (user == null) {
         Box(
-            modifier = Modifier.fillMaxSize(),
+            modifier = Modifier
+                .fillMaxSize()
+                .background(BelozColors.MintSurface),
             contentAlignment = Alignment.Center
         ) {
-            Text("Debes iniciar sesión para ver los detalles del pedido.")
+            Text("Debes iniciar sesion para ver los detalles del pedido.", color = BelozColors.MutedText)
         }
     } else {
-        // Cargar los detalles del pedido
         LaunchedEffect(pedidoId) {
             viewModel.cargarDetallesPedido(pedidoId)
         }
 
         Scaffold(
+            containerColor = BelozColors.MintSurface,
             topBar = {
-                TopAppBar(
-                    title = { Text("Detalle del Pedido") },
-                    navigationIcon = {
-                        IconButton(onClick = { navController.navigateUp() }) {
-                            Icon(Icons.Default.ArrowBack, contentDescription = "Atrás")
-                        }
-                    }
+                BelozTopAppBar(
+                    title = "Detalle pedido",
+                    subtitle = nombreRestaurante ?: "Resumen del restaurante",
+                    navController = navController
                 )
             }
         ) { paddingValues ->
             if (detalles.isEmpty()) {
-                // Mostrar mensaje mientras carga
                 Box(
                     modifier = Modifier
                         .padding(paddingValues)
-                        .fillMaxSize(),
+                        .fillMaxSize()
+                        .background(BelozColors.MintSurface),
                     contentAlignment = Alignment.Center
                 ) {
-                    Text("Cargando detalles del pedido...")
+                    CircularProgressIndicator(color = BelozColors.Green)
                 }
             } else {
-                // Mostrar nombre del restaurante y detalles del pedido en una lista
-                LazyColumn(modifier = Modifier.padding(paddingValues)) {
+                LazyColumn(
+                    modifier = Modifier
+                        .padding(paddingValues)
+                        .fillMaxSize()
+                        .background(BelozColors.MintSurface)
+                        .padding(horizontal = 18.dp, vertical = 12.dp),
+                    verticalArrangement = Arrangement.spacedBy(12.dp)
+                ) {
                     item {
-                        // Mostrar el nombre del restaurante en la parte superior
-                        Text(
-                            text = "Restaurante: ${nombreRestaurante ?: "Desconocido"}",
-                            style = MaterialTheme.typography.titleLarge,
-                            modifier = Modifier.padding(16.dp)
-                        )
+                        Column {
+                            Text(
+                                text = nombreRestaurante ?: "Restaurante desconocido",
+                                style = MaterialTheme.typography.headlineSmall,
+                                fontWeight = FontWeight.Black,
+                                color = BelozColors.Ink
+                            )
+                            Text(
+                                text = "Platos incluidos en este pedido",
+                                style = MaterialTheme.typography.bodyMedium,
+                                color = BelozColors.MutedText
+                            )
+                        }
                     }
                     items(detalles) { detalle ->
                         DetallePedidoItem(

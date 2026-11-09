@@ -1,0 +1,2 @@
+BELOZ_API_BASE_URL = https:/$()/beloz.onrender.com/
+#include? "Local.xcconfig"

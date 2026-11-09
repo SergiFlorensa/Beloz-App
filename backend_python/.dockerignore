@@ -1,0 +1,13 @@
+.env
+.env.*
+**/.env
+**/.env.*
+.venv/
+**/.venv/
+.venv-seguro/
+**/.venv-seguro/
+__pycache__/
+**/__pycache__/
+*.py[cod]
+**/*.py[cod]
+.git/

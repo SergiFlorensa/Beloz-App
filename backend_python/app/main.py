@@ -36,7 +36,7 @@ allowed_origins = [
 app.add_middleware(
     CORSMiddleware,
     allow_origins=allowed_origins,
-    allow_credentials=True,
+    allow_credentials="*" not in allowed_origins,
     allow_methods=["*"],
     allow_headers=["*"],
 )
@@ -54,6 +54,14 @@ def hash_password(password: str):
 def verify_password(plain_password: str, hashed_password: str):
     return pwd_context.verify(plain_password, hashed_password)
 
+
+def require_account_authorization():
+    # This experimental backend does not yet issue or validate account sessions.
+    raise HTTPException(
+        status_code=503,
+        detail="Pedidos y pagos no disponibles hasta configurar autenticacion segura.",
+    )
+
 # --- AUTH ENDPOINTS ---
 
 @app.post("/api/auth/register")
@@ -70,9 +78,9 @@ async def register(user: User, session: AsyncSession = Depends(get_session)):
             "surname": user.surname,
             "num_telefono": user.num_telefono,
         }
-    except Exception as e:
+    except Exception:
         await session.rollback()
-        raise HTTPException(status_code=400, detail="Error al registrar usuario: " + str(e))
+        raise HTTPException(status_code=400, detail="No se ha podido registrar el usuario.")
 
 @app.post("/api/auth/login")
 async def login(credentials: dict, session: AsyncSession = Depends(get_session)):
@@ -128,14 +136,14 @@ async def get_all_platos(restaurante_id: Optional[int] = None, session: AsyncSes
 
 # --- ORDERS ---
 
-@app.post("/api/pedidos/crear")
+@app.post("/api/pedidos/crear", dependencies=[Depends(require_account_authorization)])
 async def crear_pedido(pedido: Pedido, session: AsyncSession = Depends(get_session)):
     session.add(pedido)
     await session.commit()
     await session.refresh(pedido)
     return pedido
 
-@app.post("/api/pedidos/{pedido_id}/detalles", response_model=List[DetallePedido])
+@app.post("/api/pedidos/{pedido_id}/detalles", response_model=List[DetallePedido], dependencies=[Depends(require_account_authorization)])
 async def crear_detalles_pedido(
     pedido_id: int,
     detalles: List[DetallePedido],
@@ -152,13 +160,13 @@ async def crear_detalles_pedido(
         await session.refresh(detalle)
     return detalles_guardados
 
-@app.get("/api/pedidos", response_model=List[Pedido])
+@app.get("/api/pedidos", response_model=List[Pedido], dependencies=[Depends(require_account_authorization)])
 async def get_pedidos_por_usuario(user_id: int, session: AsyncSession = Depends(get_session)):
     statement = select(Pedido).where(Pedido.user_id == user_id).order_by(Pedido.fecha.desc())
     result = await session.execute(statement)
     return result.scalars().all()
 
-@app.get("/api/pedidos/{pedido_id}/detalles")
+@app.get("/api/pedidos/{pedido_id}/detalles", dependencies=[Depends(require_account_authorization)])
 async def get_detalles_pedido(pedido_id: int, session: AsyncSession = Depends(get_session)):
     statement = (
         select(DetallePedido, Plato, Restaurante)
@@ -180,13 +188,13 @@ async def get_detalles_pedido(pedido_id: int, session: AsyncSession = Depends(ge
         for detalle, plato, restaurante in result.all()
     ]
 
-@app.get("/api/pagos/{user_id}", response_model=Optional[PaymentInfo])
+@app.get("/api/pagos/{user_id}", response_model=Optional[PaymentInfo], dependencies=[Depends(require_account_authorization)])
 async def get_pago_usuario(user_id: int, session: AsyncSession = Depends(get_session)):
     statement = select(PaymentInfo).where(PaymentInfo.user_id == user_id)
     result = await session.execute(statement)
     return result.scalar_one_or_none()
 
-@app.put("/api/pagos/{user_id}", response_model=PaymentInfo)
+@app.put("/api/pagos/{user_id}", response_model=PaymentInfo, dependencies=[Depends(require_account_authorization)])
 async def guardar_pago_usuario(
     user_id: int,
     datos_pago: PaymentInfo,

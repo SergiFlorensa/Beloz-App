@@ -5,7 +5,6 @@ import com.app.beloz.innovacion.contexto.datos.modelos.OpenMeteoResponse
 import com.app.beloz.innovacion.contexto.dominio.ContextoClima
 import com.app.beloz.innovacion.contexto.dominio.EstadoClima
 import okhttp3.OkHttpClient
-import okhttp3.logging.HttpLoggingInterceptor
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
 
@@ -25,11 +24,7 @@ class ProveedorClimaRemoto(
     }
 
     private fun crearApi(): OpenMeteoApi {
-        val logging = HttpLoggingInterceptor().apply {
-            level = HttpLoggingInterceptor.Level.BASIC
-        }
         val client = OkHttpClient.Builder()
-            .addInterceptor(logging)
             .build()
 
         val retrofit = Retrofit.Builder()

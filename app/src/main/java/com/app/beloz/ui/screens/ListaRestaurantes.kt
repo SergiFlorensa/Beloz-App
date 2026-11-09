@@ -29,6 +29,7 @@ import kotlinx.coroutines.launch
 fun ListaRestaurantes(
     navController: NavController,
     searchQuery: String,
+    sortOrder: String = "",
 ) {
     val viewModel: RestaurantesViewModel = viewModel()
     val context = LocalContext.current
@@ -36,6 +37,8 @@ fun ListaRestaurantes(
     val scope = rememberCoroutineScope()
 
     val restaurantes by viewModel.restaurantes.collectAsState(initial = emptyList())
+    val loading by viewModel.isLoading.collectAsState()
+    val error by viewModel.errorMessage.collectAsState()
 
     LaunchedEffect(searchQuery) {
         if (searchQuery.isNotBlank()) {
@@ -45,7 +48,9 @@ fun ListaRestaurantes(
         }
     }
 
-    val filteredRestaurantes = restaurantes
+    val filteredRestaurantes = remember(restaurantes, sortOrder) {
+        com.app.beloz.data.models.CatalogSearch.sort(restaurantes, sortOrder)
+    }
 
     Scaffold(
         topBar = {
@@ -63,7 +68,14 @@ fun ListaRestaurantes(
                 .background(BelozColors.MintSurface)
                 .padding(16.dp)
         ) {
-            if (filteredRestaurantes.isEmpty()) {
+            if (loading) {
+                Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) { CircularProgressIndicator() }
+            } else if (error != null) {
+                Text(error.orEmpty(), color = BelozColors.MutedText)
+                TextButton(onClick = {
+                    if (searchQuery.isBlank()) viewModel.cargarRestaurantes() else viewModel.buscarRestaurantes(searchQuery)
+                }) { Text("Reintentar") }
+            } else if (filteredRestaurantes.isEmpty()) {
                 Box(
                     modifier = Modifier.fillMaxSize(),
                     contentAlignment = Alignment.Center
@@ -76,7 +88,7 @@ fun ListaRestaurantes(
                 }
             } else {
                 LazyColumn {
-                    items(filteredRestaurantes) { restaurante ->
+                    items(filteredRestaurantes, key = { it.restauranteId }) { restaurante ->
                         RestauranteCard(
                             imagePath = restaurante.imagePath,
                             name = restaurante.name,

@@ -1,37 +1,32 @@
 package com.app.beloz.ui.components
 
-import androidx.compose.foundation.clickable
+import android.net.Uri
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.itemsIndexed
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.KeyboardActions
+import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Close
+import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
-import androidx.compose.ui.Alignment
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.shadow
-import androidx.compose.ui.geometry.Offset
-import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.layout.onGloballyPositioned
-import androidx.compose.ui.window.Popup
-import androidx.compose.ui.window.PopupProperties
-import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.IntOffset
-import androidx.compose.ui.unit.sp
-import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.input.TextFieldValue
+import androidx.compose.ui.layout.onSizeChanged
+import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.platform.LocalFocusManager
+import androidx.compose.ui.text.font.FontFamily
+import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.style.TextOverflow
-import androidx.compose.ui.text.TextStyle
-import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.unit.toSize
+import androidx.compose.ui.unit.dp
+import androidx.compose.ui.window.PopupProperties
 import androidx.navigation.NavController
-import com.app.beloz.R
-import com.app.beloz.theme.DanfordFontFamily
+import com.app.beloz.data.models.CatalogSearch
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
-import java.net.URLEncoder
 
 @Composable
 fun Buscador(
@@ -43,205 +38,117 @@ fun Buscador(
     searchResultKeywords: List<String> = emptyList(),
     onResultClick: (String) -> Unit
 ) {
-    var textState by remember { mutableStateOf(TextFieldValue()) }
-    val coroutineScope = rememberCoroutineScope()
-    var debounceJob by remember { mutableStateOf<Job?>(null) }
-
+    var text by rememberSaveable { mutableStateOf("") }
     var showResults by remember { mutableStateOf(false) }
-    val currentQuery = textState.text.trim()
+    var fieldWidth by remember { mutableStateOf(0) }
+    val density = LocalDensity.current
+    val focusManager = LocalFocusManager.current
+    val scope = rememberCoroutineScope()
+    var debounceJob by remember { mutableStateOf<Job?>(null) }
+    val queryChanged by rememberUpdatedState(onQueryChanged)
+    val currentQuery = text.trim()
     val rankedResults = remember(searchResults, searchResultsIds, searchResultKeywords, currentQuery) {
         rankSearchResults(searchResults, searchResultsIds, searchResultKeywords, currentQuery)
     }
 
-    val textFieldSize = remember { mutableStateOf(androidx.compose.ui.geometry.Size.Zero) }
-    val textFieldOffset = remember { mutableStateOf(Offset.Zero) }
+    DisposableEffect(Unit) {
+        onDispose { debounceJob?.cancel() }
+    }
 
-    val textFieldModifier = Modifier
-        .fillMaxWidth()
-        .height(50.dp)
-        .onGloballyPositioned { coordinates ->
-            textFieldSize.value = coordinates.size.toSize()
-            textFieldOffset.value = coordinates.localToWindow(Offset.Zero)
-        }
+    fun submitSearch() {
+        if (CatalogSearch.normalize(currentQuery).isEmpty()) return
+        debounceJob?.cancel()
+        showResults = false
+        focusManager.clearFocus()
+        navController.navigate("lista_restaurantes?query=${Uri.encode(currentQuery)}")
+    }
 
-    Box(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(horizontal = 16.dp)
-    ) {
-        Column {
-            TextField(
-                value = textState,
-                onValueChange = { newValue ->
-                    textState = newValue
-                    debounceJob?.cancel()
-                    debounceJob = coroutineScope.launch {
-                        delay(300)
-                        val query = newValue.text.trim()
-                        onQueryChanged(query)
-                        showResults = query.isNotEmpty()
+    Column(Modifier.fillMaxWidth()) {
+        OutlinedTextField(
+            value = text,
+            onValueChange = { newText ->
+                text = newText
+                debounceJob?.cancel()
+                val query = newText.trim()
+                showResults = query.isNotEmpty()
+                if (query.isBlank()) {
+                    queryChanged("")
+                } else {
+                    debounceJob = scope.launch {
+                        delay(250)
+                        queryChanged(query)
                     }
-                },
-                placeholder = {
-                    Text(
-                        text = hintText,
-                        color = Color.Gray,
-                        fontSize = 12.sp,
-                        fontFamily = DanfordFontFamily,
-                        textAlign = TextAlign.Start,
-                        modifier = Modifier.fillMaxWidth(),
-                        overflow = TextOverflow.Ellipsis,
-                    )
-                },
-                textStyle = TextStyle(
-                    fontSize = 16.sp,
-                    fontWeight = FontWeight.Normal,
-                    fontFamily = DanfordFontFamily
-                ),
-                modifier = textFieldModifier,
-                colors = TextFieldDefaults.colors(
-                    focusedTextColor = Color.Black,
-                    unfocusedTextColor = Color.Black,
-                    cursorColor = Color.Black,
-                    focusedContainerColor = Color(0xFFF0F0F0),
-                    unfocusedContainerColor = Color(0xFFF0F0F0),
-                    focusedIndicatorColor = Color.Transparent,
-                    unfocusedIndicatorColor = Color.Transparent
-                ),
-                leadingIcon = {
-                    Icon(
-                        painter = painterResource(id = R.drawable.lupa),
-                        contentDescription = "Buscar",
-                        tint = Color.Gray,
-                        modifier = Modifier
-                            .size(18.dp)
-                            .clickable {
-                                val query = textState.text.trim()
-                                if (query.isNotEmpty()) {
-                                    navController.navigate("lista_restaurantes?query=${URLEncoder.encode(query, "UTF-8")}")
-                                }
-                            }
-                    )
-                },
-                trailingIcon = {
-                    if (textState.text.isNotEmpty()) {
-                        IconButton(onClick = {
-                            textState = TextFieldValue("")
-                            onQueryChanged("")
-                            showResults = false
-                        }) {
-                            Icon(
-                                painter = painterResource(id = R.drawable.eliminar),
-                                contentDescription = "Limpiar texto",
-                                tint = Color.Gray,
-                                modifier = Modifier.size(20.dp)
-                            )
-                        }
-                    }
-                },
-                singleLine = true,
-                shape = RoundedCornerShape(12.dp)
-            )
-
-            if (showResults && rankedResults.isNotEmpty()) {
-                Popup(
-                    alignment = Alignment.TopStart,
-                    offset = IntOffset(
-                        x = textFieldOffset.value.x.toInt(),
-                        y = (textFieldOffset.value.y + textFieldSize.value.height).toInt()
-                    ),
-                    properties = PopupProperties(focusable = false),
-                    onDismissRequest = { showResults = false }
-                ) {
-                    Card(
-                        modifier = Modifier
-                            .width(textFieldSize.value.width.dp)
-                            .padding(horizontal = 16.dp)
-                            .shadow(8.dp, RoundedCornerShape(12.dp)),
-                        shape = RoundedCornerShape(12.dp),
-                        colors = CardDefaults.cardColors(
-                            containerColor = Color.White
-                        )
-                    ) {
-                        LazyColumn(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .padding(vertical = 8.dp)
-                                .heightIn(max = 300.dp)
-                        ) {
-                            itemsIndexed(rankedResults) { index, result ->
-                                Column(
-                                    modifier = Modifier
-                                        .fillMaxWidth()
-                                        .clickable {
-                                            onResultClick(result.id)
-                                            showResults = false
-                                        }
-                                        .padding(horizontal = 16.dp, vertical = 5.dp)
-                                ) {
-                                    Text(
-                                        text = result.name,
-                                        fontSize = 12.sp,
-                                        fontFamily = DanfordFontFamily,
-                                        fontWeight = FontWeight.Medium,
-                                        color = Color.Black,
-                                        maxLines = 1,
-                                        overflow = TextOverflow.Ellipsis
-                                    )
-                                    if (index < rankedResults.size - 1) {
-                                        HorizontalDivider(
-                                            color = Color(0xFF71CD9D),
-                                            thickness = 1.dp,
-                                            modifier = Modifier.padding(top = 12.dp)
-                                        )
-                                    }
-                                }
-                            }
-                        }
+                }
+            },
+            placeholder = { Text(hintText, maxLines = 1, overflow = TextOverflow.Ellipsis) },
+            singleLine = true,
+            textStyle = MaterialTheme.typography.bodyMedium.copy(fontFamily = FontFamily.SansSerif),
+            keyboardOptions = KeyboardOptions(imeAction = ImeAction.Search),
+            keyboardActions = KeyboardActions(onSearch = { submitSearch() }),
+            modifier = Modifier.fillMaxWidth().heightIn(min = 56.dp).onSizeChanged { fieldWidth = it.width },
+            shape = RoundedCornerShape(8.dp),
+            colors = OutlinedTextFieldDefaults.colors(
+                focusedBorderColor = BelozColors.Green,
+                unfocusedBorderColor = BelozColors.MutedText.copy(alpha = 0.3f),
+                focusedContainerColor = BelozColors.Card,
+                unfocusedContainerColor = BelozColors.Card
+            ),
+            leadingIcon = {
+                IconButton(onClick = { submitSearch() }) {
+                    Icon(Icons.Default.Search, contentDescription = "Buscar restaurantes")
+                }
+            },
+            trailingIcon = {
+                if (text.isNotEmpty()) {
+                    IconButton(onClick = {
+                        debounceJob?.cancel()
+                        text = ""
+                        showResults = false
+                        queryChanged("")
+                    }) {
+                        Icon(Icons.Default.Close, contentDescription = "Borrar busqueda")
                     }
                 }
             }
-        }
-    }
-}
+        )
 
-private data class RankedSearchResult(
-    val name: String,
-    val id: String,
-    val keywords: String
-)
-
-private fun rankSearchResults(
-    names: List<String>,
-    ids: List<String>,
-    keywords: List<String>,
-    query: String
-): List<RankedSearchResult> {
-    if (query.isBlank()) return emptyList()
-
-    val normalizedQuery = query.lowercase()
-    val zipped = names.zip(ids).mapIndexed { index, (name, id) ->
-        RankedSearchResult(name, id, keywords.getOrNull(index).orEmpty())
-    }
-    val directMatches = zipped
-        .mapNotNull { item ->
-            val normalizedName = item.name.lowercase()
-            val normalizedKeywords = item.keywords.lowercase()
-            val rank = when {
-                normalizedName.startsWith(normalizedQuery) -> 0
-                normalizedKeywords.startsWith(normalizedQuery) -> 1
-                normalizedQuery.length > 1 && normalizedName.contains(normalizedQuery) -> 2
-                normalizedQuery.length > 1 && normalizedKeywords.contains(normalizedQuery) -> 3
-                else -> null
+        if (showResults && rankedResults.isNotEmpty()) {
+            Surface(color = BelozColors.Card, shape = RoundedCornerShape(8.dp)) {
+            Column(Modifier.fillMaxWidth().heightIn(max = 240.dp).verticalScroll(rememberScrollState())) {
+            rankedResults.forEach { result ->
+                DropdownMenuItem(
+                    text = {
+                        Column {
+                            Text(result.name, maxLines = 2, overflow = TextOverflow.Ellipsis)
+                            if (result.keywords.isNotBlank()) {
+                                Text(result.keywords, style = MaterialTheme.typography.bodySmall,
+                                    color = BelozColors.MutedText, maxLines = 1, overflow = TextOverflow.Ellipsis)
+                            }
+                        }
+                    },
+                    onClick = {
+                        debounceJob?.cancel()
+                        showResults = false
+                        focusManager.clearFocus()
+                        onResultClick(result.id)
+                    }
+                )
             }
-            rank?.let { item to it }
+            HorizontalDivider()
+            DropdownMenuItem(text = { Text("Ver todos los resultados") }, onClick = { submitSearch() })
+            }
+            }
         }
-        .sortedWith(compareBy<Pair<RankedSearchResult, Int>> { it.second }.thenBy { it.first.name.lowercase() })
-        .map { it.first }
-
-    if (normalizedQuery.length == 1 || directMatches.isNotEmpty()) {
-        return directMatches.take(8)
     }
-
-    return zipped.take(8)
 }
+
+internal data class RankedSearchResult(val name: String, val id: String, val keywords: String)
+
+internal fun rankSearchResults(
+    names: List<String>, ids: List<String>, keywords: List<String>, query: String
+): List<RankedSearchResult> = names.zip(ids).mapIndexedNotNull { index, (name, id) ->
+    val item = RankedSearchResult(name, id, keywords.getOrNull(index).orEmpty())
+    CatalogSearch.rank(item.name, item.keywords, query)?.let { item to it }
+}.sortedWith(compareBy<Pair<RankedSearchResult, Int>> { it.second }
+    .thenBy { CatalogSearch.normalize(it.first.name) })
+    .map { it.first }.distinctBy { it.id }.take(8)

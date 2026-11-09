@@ -1,50 +1,21 @@
 package com.app.beloz.ui.components
 
-import androidx.compose.foundation.Image
-import androidx.compose.foundation.background
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
-import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.Card
-import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
-import androidx.compose.material3.Surface
-import androidx.compose.material3.Text
+import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.text.font.FontFamily
+import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
-import coil.compose.AsyncImagePainter
-import coil.compose.rememberAsyncImagePainter
-import com.app.beloz.R
-import com.app.beloz.data.remote.ImageUrlResolver
+import java.text.NumberFormat
+import java.util.Locale
 
 @Composable
 fun PlatoCard(
@@ -53,158 +24,58 @@ fun PlatoCard(
     description: String,
     price: Double,
     onAddToCart: (quantity: Int) -> Unit,
+    quantityInCart: Int = 0,
     onClick: () -> Unit
 ) {
-    var quantity by remember { mutableStateOf(0) }
-    val resolvedImage = ImageUrlResolver.resolve(imagePath)
-    val hasImage = !resolvedImage.isNullOrBlank()
-    val painter = rememberAsyncImagePainter(model = resolvedImage)
-    val painterState = painter.state
-
+    val validPrice = price.isFinite() && price > 0.0
     Card(
-        modifier = Modifier
-            .padding(horizontal = 4.dp, vertical = 8.dp)
-            .fillMaxWidth()
-            .clickable { onClick() },
-        shape = RoundedCornerShape(24.dp),
-        elevation = CardDefaults.cardElevation(4.dp),
-        colors = CardDefaults.cardColors(containerColor = Color.White)
+        modifier = Modifier.fillMaxWidth(),
+        shape = RoundedCornerShape(8.dp),
+        border = BorderStroke(1.dp, BelozColors.MutedText.copy(alpha = 0.15f)),
+        colors = CardDefaults.cardColors(containerColor = BelozColors.Card)
     ) {
-        Column(modifier = Modifier.padding(12.dp)) {
-            Box(
-                modifier = Modifier
-                    .height(176.dp)
-                    .fillMaxWidth()
-                    .clip(RoundedCornerShape(20.dp))
-                    .background(BelozColors.SoftMint)
-            ) {
-                if (hasImage) {
-                    Image(
-                        painter = painter,
-                        contentDescription = name,
-                        contentScale = ContentScale.Crop,
-                        modifier = Modifier.fillMaxSize()
-                    )
-                }
-
-                if (!hasImage || painterState is AsyncImagePainter.State.Loading || painterState is AsyncImagePainter.State.Error) {
-                    Image(
-                        painter = painterResource(R.drawable.orderfood),
-                        contentDescription = null,
-                        modifier = Modifier
-                            .size(86.dp)
-                            .align(Alignment.Center)
-                    )
-                }
-
-                Surface(
-                    modifier = Modifier
-                        .align(Alignment.BottomEnd)
-                        .padding(10.dp),
-                    shape = RoundedCornerShape(100.dp),
-                    color = BelozColors.Gold
-                ) {
-                    Text(
-                        text = "${String.format("%.2f", price)} EUR",
-                        color = BelozColors.Ink,
-                        fontWeight = FontWeight.Black,
-                        fontSize = 13.sp,
-                        modifier = Modifier.padding(horizontal = 12.dp, vertical = 7.dp)
-                    )
-                }
-            }
-
-            Spacer(modifier = Modifier.height(12.dp))
-
-            Text(
-                text = name,
-                fontSize = 20.sp,
-                fontWeight = FontWeight.Black,
-                fontFamily = FontFamily.SansSerif,
-                color = BelozColors.Ink,
-                maxLines = 1,
-                overflow = TextOverflow.Ellipsis
-            )
-            Spacer(modifier = Modifier.height(4.dp))
-
-            Text(
-                text = description,
-                fontSize = 13.sp,
-                color = BelozColors.MutedText,
-                lineHeight = 18.sp,
-                maxLines = 2,
-                overflow = TextOverflow.Ellipsis
-            )
-
-            Spacer(modifier = Modifier.height(14.dp))
-
+        Column(Modifier.padding(12.dp)) {
             Row(
-                modifier = Modifier.fillMaxWidth(),
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.SpaceBetween
+                Modifier.fillMaxWidth().clickable(role = Role.Button,
+                    onClickLabel = "Ver detalle de $name", onClick = onClick),
+                horizontalArrangement = Arrangement.spacedBy(12.dp)
             ) {
-                QuantityStepper(
-                    quantity = quantity,
-                    onMinus = { if (quantity > 0) quantity-- },
-                    onPlus = { quantity++ }
-                )
-
-                Button(
-                    onClick = { onAddToCart(quantity) },
-                    enabled = quantity > 0,
-                    colors = ButtonDefaults.buttonColors(
-                        containerColor = BelozColors.Green,
-                        contentColor = BelozColors.Ink,
-                        disabledContainerColor = BelozColors.SoftMint,
-                        disabledContentColor = BelozColors.MutedText
-                    ),
-                    shape = RoundedCornerShape(18.dp),
-                    modifier = Modifier.height(46.dp)
-                ) {
-                    Text(text = "Anadir", fontWeight = FontWeight.Black)
+                Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(5.dp)) {
+                    Text(name, style = MaterialTheme.typography.titleMedium,
+                        fontWeight = FontWeight.SemiBold, color = BelozColors.Ink)
+                    if (description.isNotBlank()) {
+                        Text(description, style = MaterialTheme.typography.bodySmall,
+                            color = BelozColors.MutedText, maxLines = 3, overflow = TextOverflow.Ellipsis)
+                    }
                 }
+                CatalogImage(imagePath, name, Modifier.size(84.dp))
             }
-        }
-    }
-}
-
-@Composable
-private fun QuantityStepper(
-    quantity: Int,
-    onMinus: () -> Unit,
-    onPlus: () -> Unit
-) {
-    Surface(
-        shape = RoundedCornerShape(18.dp),
-        color = BelozColors.SoftMint
-    ) {
-        Row(
-            modifier = Modifier.padding(horizontal = 4.dp, vertical = 4.dp),
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            IconButton(onClick = onMinus, modifier = Modifier.size(38.dp)) {
-                Icon(
-                    painter = painterResource(id = R.drawable.less),
-                    contentDescription = "Disminuir cantidad",
-                    tint = BelozColors.Ink
-                )
-            }
-            Surface(shape = CircleShape, color = Color.White, modifier = Modifier.size(34.dp)) {
-                Box(contentAlignment = Alignment.Center) {
+            Row(Modifier.fillMaxWidth().padding(top = 8.dp),
+                horizontalArrangement = Arrangement.spacedBy(8.dp), verticalAlignment = Alignment.CenterVertically) {
+                Column(Modifier.weight(1f)) {
                     Text(
-                        text = quantity.toString(),
-                        fontSize = 15.sp,
-                        fontWeight = FontWeight.Black,
+                        if (validPrice) NumberFormat.getCurrencyInstance(Locale("es", "ES")).format(price)
+                        else "Precio no disponible",
+                        style = MaterialTheme.typography.bodyMedium, fontWeight = FontWeight.SemiBold,
                         color = BelozColors.Ink
                     )
+                    if (quantityInCart > 0) {
+                        Text("$quantityInCart en carrito", style = MaterialTheme.typography.labelSmall,
+                            color = BelozColors.MutedGreen)
+                    }
                 }
-            }
-            IconButton(onClick = onPlus, modifier = Modifier.size(38.dp)) {
-                Icon(
-                    imageVector = Icons.Default.Add,
-                    contentDescription = "Aumentar cantidad",
-                    tint = BelozColors.Ink
-                )
+                FilledTonalButton(
+                    onClick = { onAddToCart(1) }, enabled = validPrice,
+                    shape = RoundedCornerShape(8.dp),
+                    contentPadding = PaddingValues(horizontal = 12.dp),
+                    colors = ButtonDefaults.filledTonalButtonColors(
+                        containerColor = BelozColors.SoftMint, contentColor = BelozColors.Ink),
+                    modifier = Modifier.heightIn(min = 48.dp)
+                ) {
+                    Icon(Icons.Default.Add, contentDescription = null, modifier = Modifier.size(18.dp))
+                    Spacer(Modifier.width(6.dp))
+                    Text("Añadir")
+                }
             }
         }
     }

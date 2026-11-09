@@ -23,23 +23,12 @@ object PedidosRepository {
                     PedidosApi.CrearPedidoRequest(
                         userId = userId,
                         restaurantId = restaurantId,
-                        total = total
+                        total = total,
+                        detalles = detalles
                     )
                 )
-                val pedidoId = pedido?.id
-                if (pedidoId != null) {
-                    val detallesInsert = detalles.map {
-                        PedidosApi.DetallePedidoInsertRequest(
-                            platoId = it.platoId,
-                            cantidad = it.cantidad,
-                            precio = it.precio
-                        )
-                    }
-                    pedidosService.crearDetalles(pedidoId, detallesInsert)
-                }
                 pedido
             } catch (e: Exception) {
-                println("Error al crear pedido: ${e.message}")
                 null
             }
         }

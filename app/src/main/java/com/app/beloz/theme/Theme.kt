@@ -29,23 +29,29 @@ private val DarkColorScheme = darkColorScheme(
 )
 
 private val LightColorScheme = lightColorScheme(
-    primary = Color(0xFF56E39F),
-    onPrimary = Color(0xFF10231E),
+    primary = Color(0xFF176447),
+    onPrimary = Color.White,
+    primaryContainer = Color(0xFFBFEFD9),
+    onPrimaryContainer = Color(0xFF17251F),
     secondary = Color(0xFF245B4B),
     onSecondary = Color.White,
+    secondaryContainer = Color(0xFFE5F4EC),
+    onSecondaryContainer = Color(0xFF17251F),
     tertiary = Color(0xFFFFB24D),
     onTertiary = Color(0xFF10231E),
-    background = Color(0xFFF4FAF6),
+    background = Color(0xFFF8FAF9),
     onBackground = Color(0xFF10231E),
     surface = Color.White,
     onSurface = Color(0xFF10231E),
     surfaceVariant = Color(0xFFEAF8EF),
-    onSurfaceVariant = Color(0xFF5D7068)
+    onSurfaceVariant = Color(0xFF52645A),
+    outline = Color(0xFF708578),
+    outlineVariant = Color(0xFFDCE4DF)
 )
 
 @Composable
 fun BelozTheme(
-    darkTheme: Boolean = isSystemInDarkTheme(),
+    darkTheme: Boolean = false,
     dynamicColor: Boolean = false,
     content: @Composable () -> Unit
 ) {
@@ -62,12 +68,12 @@ fun BelozTheme(
     if (!view.isInEditMode) {
         SideEffect {
             val window = (view.context as Activity).window
-            val systemBarColor = Color(0xFFF4FAF6).toArgb()
+            val systemBarColor = colorScheme.background.toArgb()
             window.statusBarColor = systemBarColor
             window.navigationBarColor = systemBarColor
             WindowCompat.getInsetsController(window, view).apply {
-                isAppearanceLightStatusBars = true
-                isAppearanceLightNavigationBars = true
+                isAppearanceLightStatusBars = !darkTheme
+                isAppearanceLightNavigationBars = !darkTheme
             }
         }
     }

@@ -5,7 +5,7 @@ import com.app.beloz.data.models.DatosBancarios
 
 class PaymentRepository(private val paymentService: PaymentService) {
     suspend fun savePaymentData(datosBancarios: DatosBancarios) {
-        paymentService.savePaymentData(datosBancarios)
+        paymentService.savePaymentData(datosBancarios).getOrThrow()
     }
 
     suspend fun getPaymentData(userId: Int): DatosBancarios? {

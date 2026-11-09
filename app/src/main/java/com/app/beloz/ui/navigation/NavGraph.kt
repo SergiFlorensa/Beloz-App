@@ -27,7 +27,7 @@ fun NavGraph(
     val cartViewModel: CartViewModel = viewModel()
     val pedidosViewModel: PedidosViewModel = viewModel()
 
-    val startDestination = if (authViewModel.user != null) "home" else "splash"
+    val startDestination = "home"
 
     NavHost(navController = navController, startDestination = startDestination) {
         composable("splash") {
@@ -36,8 +36,20 @@ fun NavGraph(
         composable("home") {
             PagPrincipal(navController = navController, cartViewModel = cartViewModel)
         }
-        composable("beloz_chat") {
-            BelozChatScreen(navController = navController)
+        composable(
+            route = "beloz_chat?prompt={prompt}",
+            arguments = listOf(
+                navArgument("prompt") {
+                    type = NavType.StringType
+                    nullable = true
+                    defaultValue = ""
+                }
+            )
+        ) { backStackEntry ->
+            BelozChatScreen(
+                navController = navController,
+                initialPrompt = backStackEntry.arguments?.getString("prompt").orEmpty()
+            )
         }
         composable("cuenta") {
             Cuenta(navController = navController, authViewModel = authViewModel, paymentViewModel =paymentViewModel, pedidosViewModel = pedidosViewModel, cartViewModel = cartViewModel)
@@ -64,17 +76,19 @@ fun NavGraph(
             )
         }
         composable(
-            route = "lista_restaurantes?query={query}",
+            route = "lista_restaurantes?query={query}&sort={sort}",
             arguments = listOf(
                 navArgument("query") {
                     type = NavType.StringType
                     nullable = true
                     defaultValue = ""
-                }
+                },
+                navArgument("sort") { type = NavType.StringType; defaultValue = "" }
             )
         ) { backStackEntry ->
             val query = backStackEntry.arguments?.getString("query") ?: ""
-            ListaRestaurantes(navController = navController, searchQuery = query)
+            ListaRestaurantes(navController = navController, searchQuery = query,
+                sortOrder = backStackEntry.arguments?.getString("sort").orEmpty())
         }
 
         composable("comida_pais_restaurante/{country}") { backStackEntry ->

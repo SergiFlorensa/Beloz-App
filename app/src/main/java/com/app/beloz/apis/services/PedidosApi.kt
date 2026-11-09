@@ -33,7 +33,8 @@ interface PedidosApi {
     data class CrearPedidoRequest(
         @SerializedName("user_id") val userId: Int,
         @SerializedName("restaurant_id") val restaurantId: Int,
-        @SerializedName("total") val total: Double
+        @SerializedName("total") val total: Double,
+        @SerializedName("detalles") val detalles: List<DetallePedidoRequest> = emptyList()
     )
 
     data class DetallePedidoInsertRequest(

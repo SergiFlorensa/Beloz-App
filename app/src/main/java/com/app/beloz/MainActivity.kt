@@ -28,6 +28,7 @@ class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         val sessionManager = SessionManager(applicationContext)
+        com.app.beloz.data.remote.BelozApiClient.initialize(sessionManager)
         val paymentService = PaymentService()
         val paymentRepository = PaymentRepository(paymentService)
         paymentViewModel = PaymentViewModel(paymentRepository, sessionManager)

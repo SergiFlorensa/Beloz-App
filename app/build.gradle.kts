@@ -1,4 +1,5 @@
 import java.util.Properties
+import java.net.URI
 
 val localProperties = Properties()
 val localPropertiesFile = rootProject.file("local.properties")
@@ -50,6 +51,9 @@ android {
 
     buildTypes {
         release {
+            val releaseUrl = getProp("BELOZ_RELEASE_API_BASE_URL").ifBlank { "https://beloz.onrender.com/" }
+            require(URI(releaseUrl).scheme == "https") { "Release API requires HTTPS" }
+            buildConfigField("String", "BELOZ_API_BASE_URL", "\"$releaseUrl\"")
             isMinifyEnabled = false
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"),
@@ -84,6 +88,15 @@ android {
 }
 
 dependencies {
+    constraints {
+        implementation("com.google.code.gson:gson:2.8.9") {
+            because("Fixes CVE-2022-25647 in Retrofit's Gson dependency")
+        }
+        implementation("com.google.android.gms:play-services-basement:18.0.2") {
+            because("Fixes CVE-2022-2390 in Google Play services")
+        }
+    }
+
     // 1. Para la IA de escaneo de ingredientes (ML Kit - Gratis y Local)
     implementation ("com.google.mlkit:object-detection:17.0.0")
 
@@ -111,7 +124,6 @@ dependencies {
     implementation("com.squareup.retrofit2:retrofit:2.9.0")
     implementation("com.squareup.retrofit2:converter-gson:2.9.0")
     implementation("com.squareup.okhttp3:okhttp:4.11.0")
-    implementation("com.squareup.okhttp3:logging-interceptor:4.11.0")
 
 
     implementation ("com.google.dagger:hilt-android:2.44")

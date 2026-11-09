@@ -1,171 +1,52 @@
 package com.app.beloz.ui.components
 
 import android.net.Uri
-import android.widget.Toast
 import androidx.compose.foundation.layout.*
+import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import com.app.beloz.ui.viewModel.FilterViewModel
 import com.google.gson.Gson
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun MenuFiltros(navController: NavController, filterViewModel: FilterViewModel = viewModel()) {
-    val options = filterViewModel.foodTypeOptions
-    val priceOptions = filterViewModel.priceOptions
-    val sortOptions = filterViewModel.sortOptions
-    val context = LocalContext.current
-
-    var selectedFoodTypes by remember { mutableStateOf(listOf<String>()) }
-    var selectedPriceOption by remember { mutableStateOf<Map<String, Any>?>(null) }
-    var selectedSortOption by remember { mutableStateOf<Map<String, Any>?>(null) }
-
-    var showFoodTypeOptions by remember { mutableStateOf(false) }
-    var showPriceOptions by remember { mutableStateOf(false) }
-    var showSortOptions by remember { mutableStateOf(false) }
-
-    fun toggleDropdown(dropdownType: String) {
-        when (dropdownType) {
-            "Tipo de comida" -> {
-                showFoodTypeOptions = !showFoodTypeOptions
-                if (showFoodTypeOptions) {
-                    showPriceOptions = false
-                    showSortOptions = false
-                }
-            }
-            "Precio" -> {
-                showPriceOptions = !showPriceOptions
-                if (showPriceOptions) {
-                    showFoodTypeOptions = false
-                    showSortOptions = false
-                }
-            }
-            "Ordenar por" -> {
-                showSortOptions = !showSortOptions
-                if (showSortOptions) {
-                    showFoodTypeOptions = false
-                    showPriceOptions = false
-                }
-            }
+    var sheet by remember { mutableStateOf<String?>(null) }
+    var food by remember { mutableStateOf(emptyList<String>()) }
+    var price by remember { mutableStateOf<Map<String, Any>?>(null) }
+    var sort by remember { mutableStateOf<Map<String, Any>?>(null) }
+    Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+        listOf("Comida", "Precio", "Ordenar").forEach { label ->
+            BotonFiltros(label = label, modifier = Modifier.weight(1f)) { sheet = label }
         }
     }
-
-    Column {
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(vertical = 8.dp),
-            horizontalArrangement = Arrangement.spacedBy(8.dp)
-        ) {
-            BotonFiltros(
-                label = "Comida",
-                modifier = Modifier.weight(1.18f)
-            ) {
-                toggleDropdown("Tipo de comida")
-            }
-            BotonFiltros(
-                label = "Precio",
-                modifier = Modifier.weight(1f)
-            ) {
-                toggleDropdown("Precio")
-            }
-            BotonFiltros(
-                label = "Ordenar",
-                modifier = Modifier.weight(1.08f)
-            ) {
-                toggleDropdown("Ordenar por")
-            }
-        }
-
-        if (showFoodTypeOptions) {
-
-        }
-        if (showFoodTypeOptions) {
-            TipoComidaDesplegable(
-                options = options,
-                selectedOptions = selectedFoodTypes,
-                onOptionSelected = { selected ->
-                    selectedFoodTypes = selected
-                },
-                onShowResults = { selectedTypes ->
-                    if (selectedTypes.isNotEmpty()) {
-                        val selectedTypesJson = Uri.encode(Gson().toJson(selectedTypes))
-                        navController.navigate("tipo_comida_resultados/$selectedTypesJson")
-                        showFoodTypeOptions = false
-                    } else {
-                        Toast.makeText(
-                            context,
-                            "Selecciona al menos un tipo de comida",
-                            Toast.LENGTH_SHORT
-                        ).show()
+    if (sheet != null) {
+        ModalBottomSheet(onDismissRequest = { sheet = null }, containerColor = BelozColors.MintSurface,
+            sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)) {
+            when (sheet) {
+                "Comida" -> TipoComidaDesplegable(filterViewModel.foodTypeOptions, food, { food = it }) { selected ->
+                    if (selected.isNotEmpty()) {
+                        sheet = null
+                        navController.navigate("tipo_comida_resultados/${Uri.encode(Gson().toJson(selected))}")
                     }
                 }
-            )
-        }
-        if (showPriceOptions) {
-            OpcionesFiltro(
-                title = "Precio",
-                options = priceOptions,
-                selectedOption = selectedPriceOption,
-                onOptionSelected = { selected ->
-                    selectedPriceOption = selected
-                },
-                onShowResults = {
-                    if (selectedPriceOption != null) {
-                        val label = selectedPriceOption!!["label"] as String
-                        val selectedPriceEncoded = Uri.encode(label)
-                        navController.navigate("precio_resultados/$selectedPriceEncoded")
-                        showPriceOptions = false
-                    } else {
-                        Toast.makeText(
-                            context,
-                            "Selecciona un nivel de precio",
-                            Toast.LENGTH_SHORT
-                        ).show()
+                "Precio" -> OpcionesFiltro("Precio orientativo", filterViewModel.priceOptions, price, { price = it }) {
+                    price?.let {
+                        sheet = null
+                        navController.navigate("precio_resultados/${Uri.encode(it["label"].toString())}")
                     }
                 }
-            )
-        }
-
-        if (showSortOptions) {
-            OpcionesFiltro(
-                title = "Ordenar por",
-                options = sortOptions,
-                selectedOption = selectedSortOption,
-                onOptionSelected = { selected ->
-                    selectedSortOption = selected
-                },
-                onShowResults = {
-                    if (selectedSortOption != null) {
-                        val label = selectedSortOption!!["label"] as String
-                        when (label) {
-                            "Relevancia" -> {
-                                navController.navigate("relevancia_restaurantes")
-                            }
-                            "Valoración" -> {
-                                navController.navigate("valoracion_restaurantes")
-                            }
-                            else -> {
-                                Toast.makeText(
-                                    context,
-                                    "Opción no reconocida",
-                                    Toast.LENGTH_SHORT
-                                ).show()
-                            }
-                        }
-                        showSortOptions = false
-                    } else {
-                        Toast.makeText(
-                            context,
-                            "Selecciona una opción de orden",
-                            Toast.LENGTH_SHORT
-                        ).show()
+                else -> OpcionesFiltro("Ordenar restaurantes", filterViewModel.sortOptions, sort, { sort = it }) {
+                    sort?.let {
+                        sheet = null
+                        val order = if (it["label"] == "Nombre A-Z") "nombre" else "espera"
+                        navController.navigate("lista_restaurantes?sort=$order")
                     }
                 }
-            )
+            }
         }
     }
 }

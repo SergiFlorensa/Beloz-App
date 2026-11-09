@@ -4,6 +4,10 @@ import android.os.Build
 import androidx.annotation.RequiresApi
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.background
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
+import com.app.beloz.data.models.Plato
+import com.app.beloz.ui.components.CatalogImage
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -21,6 +25,10 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Surface
+import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.MaterialTheme
+import com.app.beloz.data.models.menuSections
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
@@ -56,10 +64,14 @@ import kotlinx.coroutines.launch
 fun PlatosRestaurante(
     restauranteId: Int,
     navController: NavController,
-    viewModel: PlatosViewModel = remember { PlatosViewModel() },
+    viewModel: PlatosViewModel = viewModel(),
     cartViewModel: CartViewModel
 ) {
     val platos by viewModel.platos.collectAsState()
+    val loading by viewModel.isLoading.collectAsState()
+    val error by viewModel.errorMessage.collectAsState()
+    val cart by cartViewModel.carrito.collectAsState()
+    var detail by remember(restauranteId) { mutableStateOf<Plato?>(null) }
     val context = LocalContext.current
     val perfilRepo = remember { PerfilSaborRepository(context) }
     val scope = rememberCoroutineScope()
@@ -76,8 +88,8 @@ fun PlatosRestaurante(
         cartViewModel = cartViewModel,
         topBar = {
             BelozTopAppBar(
-                title = "Platos",
-                subtitle = "Elige y anade al carrito",
+                title = "Carta",
+                subtitle = "${platos.size} platos registrados",
                 navController = navController
             )
         }
@@ -89,7 +101,14 @@ fun PlatosRestaurante(
                 .background(BelozColors.MintSurface)
                 .padding(16.dp)
         ) {
-            if (platos.isEmpty()) {
+            if (loading) {
+                Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) { CircularProgressIndicator() }
+            } else if (error != null) {
+                Column(Modifier.fillMaxWidth().padding(24.dp), horizontalAlignment = Alignment.CenterHorizontally) {
+                    Text(error.orEmpty(), color = BelozColors.MutedText)
+                    TextButton(onClick = { viewModel.cargarPlatosPorRestaurante(restauranteId) }) { Text("Reintentar") }
+                }
+            } else if (platos.isEmpty()) {
                 Box(
                     modifier = Modifier.fillMaxSize(),
                     contentAlignment = Alignment.Center
@@ -102,9 +121,7 @@ fun PlatosRestaurante(
                 }
             } else {
                 val groupedPlatos = remember(platos) {
-                    platos.groupBy { plato ->
-                        plato.category?.takeIf { it.isNotBlank() } ?: "Carta"
-                    }
+                    platos.menuSections()
                 }
                 val categories = groupedPlatos.keys.toList()
                 var selectedCategory by remember(restauranteId) { mutableStateOf<String?>(null) }
@@ -142,6 +159,7 @@ fun PlatosRestaurante(
                             name = plato.name,
                             description = plato.description,
                             price = plato.price,
+                            quantityInCart = cart.firstOrNull { it.first.id == plato.id }?.second ?: 0,
                             onAddToCart = { quantity ->
                                 val added = cartViewModel.addToCart(plato, quantity, restauranteId)
                                 if (!added) {
@@ -164,13 +182,28 @@ fun PlatosRestaurante(
                                     }
                                 }
                             },
-                            onClick = {}
+                            onClick = { detail = plato }
                         )
                     }
                 }
             }
         }
 
+        detail?.let { dish ->
+            AlertDialog(
+                onDismissRequest = { detail = null },
+                title = { Text(dish.name) },
+                text = {
+                    Column(Modifier.verticalScroll(rememberScrollState()), verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                        CatalogImage(dish.imagePath, dish.name, Modifier.fillMaxWidth().heightIn(min = 150.dp, max = 180.dp))
+                        Text(dish.description.ifBlank { "Descripción no disponible." })
+                        Text("Información del catálogo. Confirma ingredientes y disponibilidad con el restaurante.",
+                            style = MaterialTheme.typography.bodySmall, color = BelozColors.MutedText)
+                    }
+                },
+                confirmButton = { TextButton(onClick = { detail = null }) { Text("Cerrar") } }
+            )
+        }
         if (showDialog) {
             AlertDialog(
                 onDismissRequest = { showDialog = false },
@@ -203,12 +236,12 @@ private fun MenuCategorySelector(
             val selected = category == selectedCategory
             Surface(
                 modifier = Modifier
-                    .heightIn(min = 44.dp)
+                    .heightIn(min = 48.dp)
                     .widthIn(min = 92.dp)
                     .clickable { onCategorySelected(category) },
-                shape = RoundedCornerShape(16.dp),
-                color = if (selected) BelozColors.Ink else BelozColors.Card,
-                shadowElevation = if (selected) 4.dp else 1.dp
+                shape = RoundedCornerShape(8.dp),
+                color = if (selected) BelozColors.MutedGreen else BelozColors.Card,
+                shadowElevation = 0.dp
             ) {
                 Row(
                     modifier = Modifier.padding(horizontal = 14.dp, vertical = 10.dp),
@@ -232,7 +265,7 @@ private fun MenuCategorySelector(
                         )
                         Text(
                             text = "${counts[category] ?: 0} platos",
-                            color = if (selected) BelozColors.Green else BelozColors.MutedText,
+                            color = if (selected) Color.White else BelozColors.MutedText,
                             fontSize = 11.sp,
                             fontWeight = FontWeight.Medium
                         )
@@ -252,8 +285,7 @@ private fun PlatoSectionHeader(
         modifier = Modifier
             .fillMaxWidth()
             .padding(top = 10.dp, bottom = 2.dp),
-        shape = RoundedCornerShape(18.dp),
-        color = BelozColors.Ink
+        color = BelozColors.MintSurface
     ) {
         Row(
             modifier = Modifier.padding(horizontal = 16.dp, vertical = 12.dp),
@@ -262,13 +294,13 @@ private fun PlatoSectionHeader(
         ) {
             Text(
                 text = title,
-                color = Color.White,
-                fontSize = 16.sp,
-                fontWeight = FontWeight.Black
+                color = BelozColors.Ink,
+                modifier = Modifier.weight(1f),
+                style = MaterialTheme.typography.titleLarge
             )
             Text(
                 text = count.toString(),
-                color = BelozColors.Green,
+                color = BelozColors.MutedText,
                 fontSize = 13.sp,
                 fontWeight = FontWeight.Bold
             )

@@ -1,0 +1,2 @@
+// Copy this file to Local.xcconfig to override the shared Render endpoint.
+// BELOZ_API_BASE_URL = https:/$()/your-api.example/

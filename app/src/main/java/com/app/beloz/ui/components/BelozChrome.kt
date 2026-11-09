@@ -19,16 +19,17 @@ import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 
 object BelozColors {
-    val Ink = Color(0xFF10231E)
+    val Ink = Color(0xFF17251F)
     val Deep = Color(0xFF12372D)
     val Green = Color(0xFF56E39F)
-    val MutedGreen = Color(0xFF245B4B)
-    val MintSurface = Color(0xFFF4FAF6)
+    val MutedGreen = Color(0xFF176447)
+    val MintSurface = Color(0xFFF8FAF9)
     val Card = Color.White
-    val SoftMint = Color(0xFFEAF8EF)
+    val SoftMint = Color(0xFFE5F4EC)
     val Gold = Color(0xFFF7D560)
     val Orange = Color(0xFFFFB24D)
-    val MutedText = Color(0xFF5D7068)
+    val MutedText = Color(0xFF52645A)
+    val Outline = Color(0xFFDCE4DF)
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -46,8 +47,8 @@ fun BelozTopAppBar(
                     text = title,
                     color = BelozColors.Ink,
                     fontFamily = FontFamily.SansSerif,
-                    fontWeight = FontWeight.Black,
-                    fontSize = 22.sp,
+                    fontWeight = FontWeight.SemiBold,
+                    fontSize = 20.sp,
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis
                 )

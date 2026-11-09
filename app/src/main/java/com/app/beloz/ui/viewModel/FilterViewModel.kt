@@ -26,7 +26,7 @@ class FilterViewModel : ViewModel() {
     )
 
     val sortOptions = listOf(
-        mapOf("label" to "Relevancia", "iconPath" to R.drawable.popularidad),
-        mapOf("label" to "Valoración", "iconPath" to R.drawable.pulgar),
+        mapOf("label" to "Nombre A-Z", "iconPath" to R.drawable.popularidad),
+        mapOf("label" to "Espera orientativa", "iconPath" to R.drawable.pulgar),
     )
 }

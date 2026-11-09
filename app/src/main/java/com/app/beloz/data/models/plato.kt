@@ -12,3 +12,11 @@ data class Plato(
     @SerializedName("restaurante_id") val restaurantId: Int,
     @SerializedName("category") val category: String? = null
 )
+
+fun List<Plato>.menuSections(): Map<String, List<Plato>> {
+    val labels = linkedMapOf<String, String>()
+    return distinctBy { it.id }.groupBy { plato ->
+        val label = plato.category?.trim()?.takeIf { it.isNotEmpty() } ?: "Carta"
+        labels.getOrPut(CatalogSearch.normalize(label)) { label }
+    }
+}

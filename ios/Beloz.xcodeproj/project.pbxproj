@@ -1,0 +1,171 @@
+{
+	archiveVersion = 1;
+	classes = {};
+	objectVersion = 56;
+	objects = {
+
+/* Begin PBXBuildFile section */
+		100000000000000000000001 /* BelozApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 200000000000000000000001 /* BelozApp.swift */; };
+		100000000000000000000002 /* Models.swift in Sources */ = {isa = PBXBuildFile; fileRef = 200000000000000000000002 /* Models.swift */; };
+		100000000000000000000003 /* SecurityStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 200000000000000000000003 /* SecurityStore.swift */; };
+		100000000000000000000004 /* BelozAPI.swift in Sources */ = {isa = PBXBuildFile; fileRef = 200000000000000000000004 /* BelozAPI.swift */; };
+		100000000000000000000005 /* BelozStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 200000000000000000000005 /* BelozStore.swift */; };
+		100000000000000000000006 /* Components.swift in Sources */ = {isa = PBXBuildFile; fileRef = 200000000000000000000006 /* Components.swift */; };
+		100000000000000000000007 /* CatalogViews.swift in Sources */ = {isa = PBXBuildFile; fileRef = 200000000000000000000007 /* CatalogViews.swift */; };
+		100000000000000000000008 /* ChatView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 200000000000000000000008 /* ChatView.swift */; };
+		100000000000000000000009 /* AccountCartViews.swift in Sources */ = {isa = PBXBuildFile; fileRef = 200000000000000000000009 /* AccountCartViews.swift */; };
+		100000000000000000000010 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 200000000000000000000010 /* Assets.xcassets */; };
+		100000000000000000000011 /* PrivacyInfo.xcprivacy in Resources */ = {isa = PBXBuildFile; fileRef = 200000000000000000000013 /* PrivacyInfo.xcprivacy */; };
+/* End PBXBuildFile section */
+
+/* Begin PBXFileReference section */
+		200000000000000000000001 /* BelozApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BelozApp.swift; sourceTree = "<group>"; };
+		200000000000000000000002 /* Models.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Models.swift; sourceTree = "<group>"; };
+		200000000000000000000003 /* SecurityStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SecurityStore.swift; sourceTree = "<group>"; };
+		200000000000000000000004 /* BelozAPI.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BelozAPI.swift; sourceTree = "<group>"; };
+		200000000000000000000005 /* BelozStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BelozStore.swift; sourceTree = "<group>"; };
+		200000000000000000000006 /* Components.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Components.swift; sourceTree = "<group>"; };
+		200000000000000000000007 /* CatalogViews.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CatalogViews.swift; sourceTree = "<group>"; };
+		200000000000000000000008 /* ChatView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ChatView.swift; sourceTree = "<group>"; };
+		200000000000000000000009 /* AccountCartViews.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AccountCartViews.swift; sourceTree = "<group>"; };
+		200000000000000000000010 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
+		200000000000000000000011 /* Shared.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = Shared.xcconfig; sourceTree = "<group>"; };
+		200000000000000000000012 /* Beloz.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Beloz.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		200000000000000000000013 /* PrivacyInfo.xcprivacy */ = {isa = PBXFileReference; lastKnownFileType = text.xml; path = PrivacyInfo.xcprivacy; sourceTree = "<group>"; };
+/* End PBXFileReference section */
+
+/* Begin PBXFrameworksBuildPhase section */
+		300000000000000000000001 /* Frameworks */ = {isa = PBXFrameworksBuildPhase; buildActionMask = 2147483647; files = (); runOnlyForDeploymentPostprocessing = 0; };
+/* End PBXFrameworksBuildPhase section */
+
+/* Begin PBXGroup section */
+		400000000000000000000001 = {isa = PBXGroup; path = Beloz; sourceTree = "<group>"; children = (
+			400000000000000000000002 /* Sources */,
+			400000000000000000000003 /* Resources */,
+			400000000000000000000004 /* Config */,
+			400000000000000000000005 /* Products */,
+		); sourceTree = "<group>"; };
+		400000000000000000000002 /* Sources */ = {isa = PBXGroup; path = Sources; sourceTree = "<group>"; children = (
+			200000000000000000000001 /* BelozApp.swift */,
+			200000000000000000000002 /* Models.swift */,
+			200000000000000000000003 /* SecurityStore.swift */,
+			200000000000000000000004 /* BelozAPI.swift */,
+			200000000000000000000005 /* BelozStore.swift */,
+			200000000000000000000006 /* Components.swift */,
+			200000000000000000000007 /* CatalogViews.swift */,
+			200000000000000000000008 /* ChatView.swift */,
+			200000000000000000000009 /* AccountCartViews.swift */,
+		); };
+		400000000000000000000003 /* Resources */ = {isa = PBXGroup; path = Resources; sourceTree = "<group>"; children = (
+			200000000000000000000010 /* Assets.xcassets */,
+			200000000000000000000013 /* PrivacyInfo.xcprivacy */,
+		); };
+		400000000000000000000004 /* Config */ = {isa = PBXGroup; path = Config; sourceTree = "<group>"; children = (
+			200000000000000000000011 /* Shared.xcconfig */,
+		); };
+		400000000000000000000005 /* Products */ = {isa = PBXGroup; name = Products; sourceTree = "<group>"; children = (
+			200000000000000000000012 /* Beloz.app */,
+		); };
+/* End PBXGroup section */
+
+/* Begin PBXNativeTarget section */
+		500000000000000000000001 /* Beloz */ = {isa = PBXNativeTarget; buildConfigurationList = 700000000000000000000002 /* Build configuration list for PBXNativeTarget "Beloz" */; buildPhases = (
+			600000000000000000000001 /* Sources */,
+			300000000000000000000001 /* Frameworks */,
+			600000000000000000000002 /* Resources */,
+		); buildRules = (); dependencies = (); name = Beloz; productName = Beloz; productReference = 200000000000000000000012 /* Beloz.app */; productType = "com.apple.product-type.application"; };
+/* End PBXNativeTarget section */
+
+/* Begin PBXSourcesBuildPhase section */
+		600000000000000000000001 /* Sources */ = {isa = PBXSourcesBuildPhase; buildActionMask = 2147483647; files = (
+			100000000000000000000001 /* BelozApp.swift in Sources */,
+			100000000000000000000002 /* Models.swift in Sources */,
+			100000000000000000000003 /* SecurityStore.swift in Sources */,
+			100000000000000000000004 /* BelozAPI.swift in Sources */,
+			100000000000000000000005 /* BelozStore.swift in Sources */,
+			100000000000000000000006 /* Components.swift in Sources */,
+			100000000000000000000007 /* CatalogViews.swift in Sources */,
+			100000000000000000000008 /* ChatView.swift in Sources */,
+			100000000000000000000009 /* AccountCartViews.swift in Sources */,
+		); runOnlyForDeploymentPostprocessing = 0; };
+/* End PBXSourcesBuildPhase section */
+
+/* Begin PBXResourcesBuildPhase section */
+		600000000000000000000002 /* Resources */ = {isa = PBXResourcesBuildPhase; buildActionMask = 2147483647; files = (
+			100000000000000000000010 /* Assets.xcassets in Resources */,
+			100000000000000000000011 /* PrivacyInfo.xcprivacy in Resources */,
+		); runOnlyForDeploymentPostprocessing = 0; };
+/* End PBXResourcesBuildPhase section */
+
+/* Begin XCBuildConfiguration section */
+		800000000000000000000001 /* Debug project */ = {isa = XCBuildConfiguration; baseConfigurationReference = 200000000000000000000011 /* Shared.xcconfig */; buildSettings = {
+			ALWAYS_SEARCH_USER_PATHS = NO;
+			CLANG_ENABLE_MODULES = YES;
+			IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+			SDKROOT = iphoneos;
+			SWIFT_VERSION = 5.0;
+		}; name = Debug; };
+		800000000000000000000002 /* Release project */ = {isa = XCBuildConfiguration; baseConfigurationReference = 200000000000000000000011 /* Shared.xcconfig */; buildSettings = {
+			ALWAYS_SEARCH_USER_PATHS = NO;
+			CLANG_ENABLE_MODULES = YES;
+			IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+			SDKROOT = iphoneos;
+			SWIFT_VERSION = 5.0;
+		}; name = Release; };
+		800000000000000000000003 /* Debug app */ = {isa = XCBuildConfiguration; baseConfigurationReference = 200000000000000000000011 /* Shared.xcconfig */; buildSettings = {
+			ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+			CODE_SIGN_STYLE = Automatic;
+			GENERATE_INFOPLIST_FILE = YES;
+			INFOPLIST_KEY_BELOZ_API_BASE_URL = "$(BELOZ_API_BASE_URL)";
+			INFOPLIST_KEY_CFBundleDisplayName = Beloz;
+			INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
+			INFOPLIST_KEY_UILaunchScreen_Generation = YES;
+			IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+			CURRENT_PROJECT_VERSION = 1;
+			LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks";
+			MARKETING_VERSION = 1.0;
+			PRODUCT_BUNDLE_IDENTIFIER = com.app.beloz.ios;
+			PRODUCT_NAME = "$(TARGET_NAME)";
+			SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
+			SWIFT_EMIT_LOC_STRINGS = YES;
+			SWIFT_VERSION = 5.0;
+			TARGETED_DEVICE_FAMILY = "1,2";
+		}; name = Debug; };
+		800000000000000000000004 /* Release app */ = {isa = XCBuildConfiguration; baseConfigurationReference = 200000000000000000000011 /* Shared.xcconfig */; buildSettings = {
+			ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+			CODE_SIGN_STYLE = Automatic;
+			GENERATE_INFOPLIST_FILE = YES;
+			INFOPLIST_KEY_BELOZ_API_BASE_URL = "$(BELOZ_API_BASE_URL)";
+			INFOPLIST_KEY_CFBundleDisplayName = Beloz;
+			INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
+			INFOPLIST_KEY_UILaunchScreen_Generation = YES;
+			IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+			CURRENT_PROJECT_VERSION = 1;
+			LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks";
+			MARKETING_VERSION = 1.0;
+			PRODUCT_BUNDLE_IDENTIFIER = com.app.beloz.ios;
+			PRODUCT_NAME = "$(TARGET_NAME)";
+			SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
+			SWIFT_EMIT_LOC_STRINGS = YES;
+			SWIFT_VERSION = 5.0;
+			TARGETED_DEVICE_FAMILY = "1,2";
+		}; name = Release; };
+/* End XCBuildConfiguration section */
+
+/* Begin XCConfigurationList section */
+		700000000000000000000001 /* Build configuration list for PBXProject */ = {isa = XCConfigurationList; buildConfigurations = (
+			800000000000000000000001 /* Debug project */,
+			800000000000000000000002 /* Release project */,
+		); defaultConfigurationIsVisible = 0; defaultConfigurationName = Release; };
+		700000000000000000000002 /* Build configuration list for PBXNativeTarget "Beloz" */ = {isa = XCConfigurationList; buildConfigurations = (
+			800000000000000000000003 /* Debug app */,
+			800000000000000000000004 /* Release app */,
+		); defaultConfigurationIsVisible = 0; defaultConfigurationName = Release; };
+/* End XCConfigurationList section */
+
+/* Begin PBXProject section */
+		900000000000000000000001 /* Project object */ = {isa = PBXProject; attributes = {BuildIndependentTargetsInParallel = YES; LastUpgradeCheck = 1600; TargetAttributes = {500000000000000000000001 = {CreatedOnToolsVersion = 16.0; }; }; }; buildConfigurationList = 700000000000000000000001 /* Build configuration list for PBXProject */; compatibilityVersion = "Xcode 14.0"; developmentRegion = es; hasScannedForEncodings = 0; knownRegions = (en, es, Base); mainGroup = 400000000000000000000001; productRefGroup = 400000000000000000000005 /* Products */; projectDirPath = ""; projectRoot = ""; targets = (500000000000000000000001 /* Beloz */); };
+/* End PBXProject section */
+	};
+	rootObject = 900000000000000000000001 /* Project object */;
+}

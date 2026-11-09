@@ -1,229 +1,116 @@
 package com.app.beloz.ui.components
 
-import androidx.compose.foundation.Image
-import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.padding
+import android.net.Uri
+import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.Card
-import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Text
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowForward
+import androidx.compose.material3.*
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
-import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
-import coil.compose.rememberAsyncImagePainter
-import com.app.beloz.data.remote.ImageUrlResolver
-import com.app.beloz.innovacion.contexto.dominio.SugerenciaContextual
-import com.app.beloz.innovacion.contexto.presentacion.RecomendacionesContextoViewModel
-import com.app.beloz.innovacion.perfil.EventoUso
-import com.app.beloz.innovacion.perfil.PerfilSabor
-import com.app.beloz.innovacion.perfil.PerfilSaborRepository
-import com.app.beloz.innovacion.perfil.TipoEvento
-import com.app.beloz.theme.DanfordFontFamily
-import kotlinx.coroutines.launch
+import com.app.beloz.data.models.Restaurante
+import com.app.beloz.innovacion.decision.DecisionMode
+import com.app.beloz.innovacion.decision.RestaurantDecision
 
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalLayoutApi::class)
 @Composable
-fun SugerenciasContextualesSection(
-    navController: NavController,
-    modifier: Modifier = Modifier,
-    viewModel: RecomendacionesContextoViewModel = viewModel()
-) {
-    val estado by viewModel.estado.collectAsState()
-    val context = LocalContext.current
-    val perfilRepo = remember { PerfilSaborRepository(context) }
-    val perfil by perfilRepo.perfilFlow().collectAsState(initial = PerfilSabor())
-    val scope = rememberCoroutineScope()
-
-    LaunchedEffect(perfil) {
-        viewModel.refrescar(perfil)
-    }
-
-    Card(
-        modifier = modifier
-            .fillMaxWidth()
-            .padding(vertical = 12.dp),
-        shape = RoundedCornerShape(20.dp),
-        colors = CardDefaults.cardColors(containerColor = Color(0xFF101C1A)),
-        elevation = CardDefaults.cardElevation(6.dp)
-    ) {
-        Column(modifier = Modifier.padding(20.dp)) {
-            Text(
-                text = "Para ti ahora",
-                color = Color(0xFF71CD9D),
-                style = MaterialTheme.typography.titleLarge.copy(fontFamily = DanfordFontFamily)
-            )
-            Spacer(modifier = Modifier.height(4.dp))
-            Text(
-                text = estado.descripcionContextual,
-                color = Color.White,
-                fontSize = 12.sp
-            )
-            if (estado.hayClima && estado.descripcionClima.isNotBlank()) {
-                Spacer(modifier = Modifier.height(6.dp))
-                Text(
-                    text = estado.descripcionClima,
-                    color = Color(0xFF9FE2BF),
-                    fontSize = 12.sp
-                )
+fun SugerenciasContextualesSection(navController: NavController, restaurants: List<Restaurante>,
+    loading: Boolean, error: String?, onRetry: () -> Unit, modifier: Modifier = Modifier) {
+    var mode by remember { mutableStateOf(DecisionMode.DISCOVER) }
+    var compare by remember { mutableStateOf(false) }
+    val choices = remember(restaurants, mode) { RestaurantDecision.choose(restaurants, mode) }
+    Column(modifier.fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(12.dp)) {
+        Text("Tres opciones. Tú eliges.", style = MaterialTheme.typography.titleLarge, color = BelozColors.Ink)
+        FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+            DecisionMode.values().forEach { item ->
+                FilterChip(selected = mode == item, onClick = { mode = item }, label = { Text(item.label) })
             }
-            val errorMsg = estado.error
-            if (errorMsg != null) {
-                Spacer(modifier = Modifier.height(6.dp))
-                Text(
-                    text = errorMsg,
-                    color = Color(0xFFFFC107),
-                    fontSize = 11.sp
-                )
+        }
+        when {
+            loading -> Box(Modifier.fillMaxWidth().height(140.dp), contentAlignment = Alignment.Center) {
+                CircularProgressIndicator()
             }
-            Spacer(modifier = Modifier.height(12.dp))
-            if (estado.cargando) {
-                Column(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalAlignment = Alignment.CenterHorizontally
-                ) {
-                    CircularProgressIndicator(color = Color(0xFF71CD9D))
-                }
-            } else if (estado.sugerencias.isEmpty()) {
-                Text(
-                    text = "Sin recomendaciones todavia",
-                    color = Color.LightGray,
-                    fontSize = 13.sp
-                )
-            } else {
-                estado.sugerencias.forEach { sugerencia ->
-                    SugerenciaContextualItem(
-                        sugerencia = sugerencia,
-                        onOpenRestaurante = {
-                            val restauranteId = sugerencia.restauranteId
-                            if (restauranteId != null) {
-                                scope.launch {
-                                    perfilRepo.registrarEvento(
-                                        EventoUso(
-                                            tipo = TipoEvento.VIEW_RESTAURANT,
-                                            metadata = mapOf(
-                                                "restaurant_id" to restauranteId.toString(),
-                                                "food_type" to (sugerencia.typeOfFood ?: ""),
-                                                "price_level" to (sugerencia.priceLevel ?: ""),
-                                                "country" to (sugerencia.country ?: "")
-                                            )
-                                        )
-                                    )
-                                }
-                                navController.navigate("platos_restaurante/$restauranteId")
+            error != null -> {
+                Text(error, color = BelozColors.MutedText)
+                OutlinedButton(onClick = onRetry) { Text("Reintentar") }
+            }
+            choices.isEmpty() -> Text("No hay opciones con estos datos.", color = BelozColors.MutedText)
+            else -> {
+                choices.forEachIndexed { index, choice ->
+                    val restaurant = choice.restaurant
+                    Card(
+                        modifier = Modifier.fillMaxWidth().clickable(role = Role.Button,
+                            onClickLabel = "Ver carta de ${restaurant.name}") {
+                            navController.navigate("platos_restaurante/${restaurant.restauranteId}")
+                        },
+                        shape = RoundedCornerShape(8.dp),
+                        colors = CardDefaults.cardColors(containerColor = Color.White),
+                        border = BorderStroke(1.dp, BelozColors.Outline),
+                        elevation = CardDefaults.cardElevation(defaultElevation = if (index == 0) 3.dp else 0.dp)
+                    ) {
+                        if (index == 0) CatalogImage(restaurant.imagePath, restaurant.name,
+                            Modifier.fillMaxWidth().height(140.dp))
+                        Row(Modifier.padding(16.dp), horizontalArrangement = Arrangement.spacedBy(12.dp),
+                            verticalAlignment = Alignment.CenterVertically) {
+                            if (index != 0) CatalogImage(restaurant.imagePath, restaurant.name, Modifier.size(60.dp))
+                            Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                                Text(restaurant.name, style = MaterialTheme.typography.titleMedium, color = BelozColors.Ink)
+                                Text(choice.reason, style = MaterialTheme.typography.bodySmall, color = BelozColors.MutedText)
+                                Text("${RestaurantDecision.priceLabel(restaurant.priceLevel)} · ${if (restaurant.waitTime > 0) "~${restaurant.waitTime} min" else "Espera sin dato"}",
+                                    style = MaterialTheme.typography.labelMedium, color = BelozColors.MutedGreen)
                             }
+                            Icon(Icons.AutoMirrored.Filled.ArrowForward, null, tint = BelozColors.MutedGreen)
                         }
-                    )
-                    Spacer(modifier = Modifier.height(12.dp))
+                    }
+                }
+                Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically) {
+                    Text("Precio y espera orientativos", style = MaterialTheme.typography.labelSmall,
+                        color = BelozColors.MutedText, modifier = Modifier.weight(1f))
+                    TextButton(onClick = { compare = true }) { Text("Comparar") }
                 }
             }
-            Button(
-                onClick = { viewModel.refrescar(perfil) },
-                colors = ButtonDefaults.buttonColors(containerColor = BelozColors.Green),
-                modifier = Modifier.align(Alignment.CenterHorizontally)
-            ) {
-                Text(text = "Actualizar estado", color = BelozColors.Ink)
+        }
+        HorizontalDivider(color = BelozColors.Outline)
+        Row(Modifier.fillMaxWidth().heightIn(min = 64.dp).clickable(role = Role.Button) {
+            navController.navigate("beloz_chat?prompt=${Uri.encode("Tengo 12 euros. Que platos puedo pedir?")}")
+        }, verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+            Column(Modifier.weight(1f)) {
+                Text("¿Tienes un presupuesto?", style = MaterialTheme.typography.titleMedium, color = BelozColors.Ink)
+                Text("Consulta platos con Beloz AI", style = MaterialTheme.typography.bodyMedium, color = BelozColors.MutedText)
             }
+            Icon(Icons.AutoMirrored.Filled.ArrowForward, null, tint = BelozColors.MutedGreen)
         }
     }
-}
-
-@Composable
-private fun SugerenciaContextualItem(
-    sugerencia: SugerenciaContextual,
-    onOpenRestaurante: () -> Unit
-) {
-    Column(
-        modifier = Modifier
-            .background(Color.White.copy(alpha = 0.05f), RoundedCornerShape(16.dp))
-            .padding(12.dp)
-    ) {
-        val imageUrl = ImageUrlResolver.resolve(sugerencia.imagePath)
-        if (!imageUrl.isNullOrBlank()) {
-            Image(
-                painter = rememberAsyncImagePainter(model = imageUrl),
-                contentDescription = sugerencia.restauranteNombre ?: sugerencia.titulo,
-                contentScale = ContentScale.Crop,
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(118.dp)
-                    .clip(RoundedCornerShape(12.dp))
-            )
-            Spacer(modifier = Modifier.height(10.dp))
-        }
-        Text(
-            text = sugerencia.titulo,
-            color = Color.White,
-            style = MaterialTheme.typography.titleMedium.copy(fontFamily = DanfordFontFamily)
-        )
-        Spacer(modifier = Modifier.height(4.dp))
-        Text(text = sugerencia.descripcion, color = Color(0xFFE0E0E0), fontSize = 13.sp)
-        if (!sugerencia.motivo.isNullOrBlank()) {
-            Spacer(modifier = Modifier.height(4.dp))
-            Text(
-                text = sugerencia.motivo,
-                color = Color(0xFF9FE2BF),
-                fontSize = 11.sp
-            )
-        }
-        if (sugerencia.waitTime != null || sugerencia.priceLevel != null || sugerencia.valoracion != null) {
-            Spacer(modifier = Modifier.height(6.dp))
-            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                sugerencia.waitTime?.let {
-                    Text(text = "${it} min", color = Color(0xFFE0E0E0), fontSize = 11.sp)
+    if (compare) {
+        ModalBottomSheet(onDismissRequest = { compare = false }, containerColor = BelozColors.MintSurface) {
+            Column(Modifier.fillMaxWidth().verticalScroll(rememberScrollState()).padding(24.dp),
+                verticalArrangement = Arrangement.spacedBy(16.dp)) {
+                Text("Ponlos en perspectiva", style = MaterialTheme.typography.titleLarge)
+                choices.forEach { choice ->
+                    val restaurant = choice.restaurant
+                    Text(restaurant.name, style = MaterialTheme.typography.titleMedium)
+                    Text("${restaurant.typeOfFood} · Precio: ${RestaurantDecision.priceLabel(restaurant.priceLevel)}",
+                        style = MaterialTheme.typography.bodyMedium)
+                    Text(if (restaurant.waitTime > 0) "Espera registrada: ${restaurant.waitTime} min aprox." else "Espera no disponible",
+                        style = MaterialTheme.typography.bodySmall, color = BelozColors.MutedText)
+                    TextButton(onClick = {
+                        compare = false
+                        navController.navigate("platos_restaurante/${restaurant.restauranteId}")
+                    }) { Text("Ver carta") }
+                    HorizontalDivider(color = BelozColors.Outline)
                 }
-                sugerencia.priceLevel?.let {
-                    Text(text = it, color = Color(0xFFE0E0E0), fontSize = 11.sp)
-                }
-                sugerencia.valoracion?.let {
-                    Text(text = String.format("%.1f", it), color = Color(0xFFE0E0E0), fontSize = 11.sp)
-                }
-            }
-        }
-        if (sugerencia.etiquetas.isNotEmpty()) {
-            Spacer(modifier = Modifier.height(6.dp))
-            Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
-                sugerencia.etiquetas.forEach { etiqueta ->
-                    Text(
-                        text = "#${etiqueta}",
-                        color = Color(0xFF71CD9D),
-                        fontSize = 11.sp
-                    )
-                }
-            }
-        }
-        if (sugerencia.restauranteId != null) {
-            Spacer(modifier = Modifier.height(10.dp))
-            Box(modifier = Modifier.fillMaxWidth()) {
-                Button(
-                    onClick = onOpenRestaurante,
-                    colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF71CD9D)),
-                    modifier = Modifier.align(Alignment.CenterEnd)
-                ) {
-                    Text(text = "Ver restaurante", color = Color.Black)
-                }
+                Text("Estimaciones del catálogo; confirma condiciones con el restaurante.",
+                    style = MaterialTheme.typography.bodySmall, color = BelozColors.MutedText)
             }
         }
     }

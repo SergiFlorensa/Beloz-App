@@ -17,8 +17,15 @@ local.properties
 *.log
 .kotlin/
 
+# iOS/Xcode local state
+ios/Beloz/Config/Local.xcconfig
+ios/**/xcuserdata/
+ios/**/DerivedData/
+*.xcuserstate
+
 # Python/backend local artifacts
 backend_python/.venv/
+backend_python/.venv-seguro/
 backend_python/.env
 backend_python/.env.*
 __pycache__/

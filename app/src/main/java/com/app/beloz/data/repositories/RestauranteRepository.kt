@@ -2,6 +2,7 @@ package com.app.beloz.data.repositories
 
 import com.app.beloz.apis.services.RestauranteService
 import com.app.beloz.data.models.Restaurante
+import com.app.beloz.data.models.CatalogSearch
 import retrofit2.HttpException
 
 object RestauranteRepository {
@@ -29,7 +30,8 @@ object RestauranteRepository {
     }
 
     suspend fun searchRestaurantes(query: String): List<Restaurante> {
-        return restaurantService.searchRestaurantes(query)
+        if (CatalogSearch.normalize(query).isEmpty()) return emptyList()
+        return CatalogSearch.search(fetchRestaurantes(), query)
     }
     suspend fun getRestaurantesFiltradosPorTipos(types: List<String>): List<Restaurante> {
         return try {
@@ -43,14 +45,15 @@ object RestauranteRepository {
         }
     }
     suspend fun getRestaurantesPorNivelPrecio(priceLevel: String): List<Restaurante> {
-        return restaurantService.getRestaurantesPorNivelPrecio(priceLevel)
+        return CatalogSearch.filterPrice(fetchRestaurantes(), priceLevel)
     }
     suspend fun fetchRestaurantesPorValoracion(): List<Restaurante> {
-        return restaurantService.fetchRestaurantesPorValoracion()
+        return fetchRestaurantes().filter { it.valoracion.isFinite() && it.valoracion > 0.0 && it.valoracion <= 5.0 }
+            .sortedByDescending { it.valoracion }
     }
 
     suspend fun fetchRestaurantesPorRelevancia(): List<Restaurante> {
-        return restaurantService.fetchRestaurantesPorRelevancia()
+        return fetchRestaurantes().sortedByDescending { it.relevancia }
     }
     suspend fun fetchRestaurantesInteres(): List<Restaurante> {
         return restaurantService.fetchRestaurantesInteres()

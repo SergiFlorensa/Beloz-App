@@ -5,7 +5,7 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.*
-import androidx.compose.runtime.Composable
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -26,6 +26,9 @@ import com.app.beloz.ui.viewModel.RestaurantesViewModel
 @Composable
 fun PagPrincipal(navController: NavController,cartViewModel: CartViewModel) {
     val viewModel: RestaurantesViewModel = viewModel()
+    val restaurants by viewModel.catalog.collectAsState()
+    val loading by viewModel.catalogIsLoading.collectAsState()
+    val error by viewModel.catalogError.collectAsState()
     Scaffold(
         topBar = {
             TopBar(navController = navController, viewModel = viewModel)
@@ -52,14 +55,13 @@ fun PagPrincipal(navController: NavController,cartViewModel: CartViewModel) {
                 Spacer(modifier = Modifier.height(10.dp))
                 MenuFiltros(navController = navController)
                 Spacer(modifier = Modifier.height(10.dp))
-                SugerenciasContextualesSection(navController = navController)
+                SugerenciasContextualesSection(navController = navController, restaurants = restaurants,
+                    loading = loading, error = error, onRetry = viewModel::cargarRestaurantes)
                 Spacer(modifier = Modifier.height(16.dp))
-                EstablecimientoSection(navController = navController)
-                Spacer(modifier = Modifier.height(16.dp))
-                TablaPaises(navController = navController)
-                Spacer(modifier = Modifier.height(16.dp))
-                RestaurantesPopulares(navController = navController)
-                Spacer(modifier = Modifier.height(132.dp))
+                TextButton(onClick = { navController.navigate("lista_restaurantes") }) {
+                    Text("Explorar todos los restaurantes")
+                }
+                Spacer(modifier = Modifier.height(24.dp))
 
 
             }

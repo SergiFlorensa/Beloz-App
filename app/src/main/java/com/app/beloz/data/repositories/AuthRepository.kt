@@ -3,10 +3,14 @@ package com.app.beloz.data.repositories
 import com.app.beloz.apis.services.AuthService
 import com.app.beloz.data.models.User
 import com.app.beloz.utils.SessionManager
+import com.app.beloz.data.remote.BelozApiClient
 
 object AuthRepository {
     private val authService = AuthService()
-    fun initialize(sessionManager: SessionManager) { }
+    fun initialize(sessionManager: SessionManager) {
+        authService.initialize(sessionManager)
+        BelozApiClient.initialize(sessionManager)
+    }
 
     suspend fun register(name: String, surname: String, email: String, password: String, numTelefono: String): User {
         return authService.register(name, surname, email, password, numTelefono)
@@ -26,5 +30,9 @@ object AuthRepository {
     }
     suspend fun deleteUser(userId: Int) {
         authService.deleteUser(userId)
+    }
+
+    suspend fun logout(token: String) {
+        authService.logout(token)
     }
 }

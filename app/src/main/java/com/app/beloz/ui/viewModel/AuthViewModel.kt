@@ -1,7 +1,6 @@
 package com.app.beloz.ui.viewModel
 
 import android.app.Application
-import android.util.Log
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
@@ -20,8 +19,16 @@ class AuthViewModel(application: Application) : AndroidViewModel(application) {
     init {
         AuthRepository.initialize(sessionManager)
 
-        if (sessionManager.isLoggedIn()) {
-            user = User(
+        viewModelScope.launch {
+            sessionManager.sessionChanges.collect {
+                restoreSession()
+            }
+        }
+    }
+
+    private fun restoreSession() {
+        user = if (sessionManager.isLoggedIn()) {
+            User(
                 idUser = sessionManager.getUserId(),
                 name = sessionManager.getUserName() ?: "",
                 surname = sessionManager.getUserSurname()
@@ -31,9 +38,7 @@ class AuthViewModel(application: Application) : AndroidViewModel(application) {
                     ?: "",
                 token = sessionManager.getUserToken()
             )
-        }
-        Log.d("AuthViewModel", "Phone number loaded: ${user?.numTelefono}")
-
+        } else null
     }
 
     fun register(
@@ -68,17 +73,16 @@ class AuthViewModel(application: Application) : AndroidViewModel(application) {
         }
         viewModelScope.launch {
             try {
-                user = AuthRepository.login(email, password)
-                Log.d("AuthViewModel", "Phone number loaded on login: ${user?.numTelefono}")
-
+                val authenticatedUser = AuthRepository.login(email, password)
                 sessionManager.saveSession(
-                    userId = user!!.idUser,
-                    userName = user!!.name,
-                    userSurname = user!!.surname ?: "", // Aseguramos que no sea nulo
-                    userEmail = user!!.email,
-                    numTelefono = user!!.numTelefono ?: "",
-                    userToken = user!!.token
+                    userId = authenticatedUser.idUser,
+                    userName = authenticatedUser.name,
+                    userSurname = authenticatedUser.surname ?: "",
+                    userEmail = authenticatedUser.email,
+                    numTelefono = authenticatedUser.numTelefono ?: "",
+                    userToken = authenticatedUser.token
                 )
+                restoreSession()
                 onSuccess()
             } catch (e: Exception) {
                 val errorMessage = e.message ?: "Error desconocido"
@@ -164,8 +168,8 @@ class AuthViewModel(application: Application) : AndroidViewModel(application) {
                     onError("La nueva contraseña debe ser diferente a la actual.")
                     return@launch
                 }
-                if (currentPassword.length < 6) {
-                    onError("La contraseña actual debe tener al menos 6 caracteres.")
+                if (newPassword.length < 8 || newPassword.toByteArray(Charsets.UTF_8).size > 72) {
+                    onError("Usa al menos 8 caracteres y un máximo de 72 bytes.")
                     return@launch
                 }
 
@@ -174,10 +178,6 @@ class AuthViewModel(application: Application) : AndroidViewModel(application) {
                     currentPassword = currentPassword,
                     newPassword = newPassword
                 )
-                if (newPassword.length < 6) {
-                    onError("La nueva contraseña debe tener al menos 6 caracteres.")
-                    return@launch
-                }
 
                 onSuccess()
             } catch (e: Exception) {
@@ -200,10 +200,8 @@ class AuthViewModel(application: Application) : AndroidViewModel(application) {
                 sessionManager.clearSession()
                 paymentViewModel.clearPaymentData()
                 user = null
-                Log.d("AuthViewModel", "Cuenta eliminada y todos los datos limpiados correctamente.")
                 onSuccess()
             } catch (e: Exception) {
-                Log.e("AuthViewModel", "Error al eliminar la cuenta: ${e.message}")
                 onError(e.message ?: "Error desconocido al eliminar la cuenta")
             }
         }
@@ -228,7 +226,6 @@ class AuthViewModel(application: Application) : AndroidViewModel(application) {
                     onError("El número de teléfono no puede estar vacío.")
                     return@launch
                 }
-                Log.d("AuthViewModel", "Updating phone number: $numTelefono")
 
                 val updatedUser = AuthRepository.updatePhoneNumber(user!!.idUser, numTelefono)
 

@@ -6,6 +6,8 @@ import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.selection.toggleable
+import androidx.compose.ui.semantics.Role
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -61,9 +63,7 @@ fun TipoComidaDesplegable(
 
     Surface(
         modifier = Modifier.fillMaxWidth(),
-        shape = RoundedCornerShape(26.dp),
-        color = Color(0xFF10231E),
-        shadowElevation = 6.dp
+        color = BelozColors.MintSurface
     ) {
         Column(modifier = Modifier.padding(16.dp)) {
             Row(
@@ -73,14 +73,14 @@ fun TipoComidaDesplegable(
                 Column(modifier = Modifier.weight(1f)) {
                     Text(
                         text = "Tipo de comida",
-                        color = Color.White,
+                        color = BelozColors.Ink,
                         fontFamily = FontFamily.SansSerif,
                         fontSize = 20.sp,
                         fontWeight = FontWeight.Black
                     )
                     Text(
                         text = "Elige uno o varios estilos",
-                        color = Color(0xFFCFE8DC),
+                        color = BelozColors.MutedText,
                         fontFamily = FontFamily.SansSerif,
                         fontSize = 12.sp
                     )
@@ -89,7 +89,7 @@ fun TipoComidaDesplegable(
                 if (selectedItems.isNotEmpty()) {
                     Text(
                         text = "${selectedItems.size} activos",
-                        color = Color(0xFFF7D560),
+                        color = BelozColors.MutedGreen,
                         fontFamily = FontFamily.SansSerif,
                         fontSize = 12.sp,
                         fontWeight = FontWeight.Bold
@@ -100,7 +100,7 @@ fun TipoComidaDesplegable(
             Spacer(modifier = Modifier.height(14.dp))
 
             LazyVerticalGrid(
-                columns = GridCells.Fixed(3),
+                columns = GridCells.Adaptive(96.dp),
                 contentPadding = PaddingValues(2.dp),
                 verticalArrangement = Arrangement.spacedBy(8.dp),
                 horizontalArrangement = Arrangement.spacedBy(8.dp),
@@ -131,6 +131,7 @@ fun TipoComidaDesplegable(
 
             Button(
                 onClick = { onShowResults(selectedItems.toList()) },
+                enabled = selectedItems.isNotEmpty(),
                 colors = ButtonDefaults.buttonColors(
                     containerColor = Color(0xFF56E39F),
                     contentColor = Color(0xFF10231E)
@@ -165,16 +166,16 @@ private fun FoodTypeOption(
 
     Surface(
         modifier = Modifier
-            .height(112.dp)
-            .clip(RoundedCornerShape(18.dp))
-            .clickable(onClick = onClick),
-        shape = RoundedCornerShape(18.dp),
-        color = if (selected) Color(0x20FFFFFF) else Color(0x14FFFFFF),
+            .heightIn(min = 124.dp)
+            .clip(RoundedCornerShape(8.dp))
+            .toggleable(value = selected, role = Role.Checkbox, onValueChange = { onClick() }),
+        shape = RoundedCornerShape(8.dp),
+        color = if (selected) BelozColors.SoftMint else Color.White,
         border = BorderStroke(1.dp, if (selected) Color(0x59FFB24D) else Color.Transparent)
     ) {
         Column(
             modifier = Modifier
-                .fillMaxSize()
+                .fillMaxWidth()
                 .padding(horizontal = 6.dp, vertical = 8.dp),
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.Center
@@ -198,7 +199,7 @@ private fun FoodTypeOption(
                 }
                 Image(
                     painter = painterResource(id = iconResId),
-                    contentDescription = label,
+                    contentDescription = null,
                     modifier = Modifier.size(48.dp)
                 )
             }
@@ -207,13 +208,13 @@ private fun FoodTypeOption(
 
             Text(
                 text = label,
-                fontSize = 11.sp,
-                color = Color.White,
+                fontSize = 13.sp,
+                color = BelozColors.Ink,
                 fontFamily = FontFamily.SansSerif,
                 fontWeight = if (selected) FontWeight.Bold else FontWeight.Medium,
                 textAlign = TextAlign.Center,
                 modifier = Modifier.fillMaxWidth(),
-                maxLines = 1,
+                maxLines = 2,
                 overflow = TextOverflow.Ellipsis
             )
         }

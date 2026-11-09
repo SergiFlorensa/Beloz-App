@@ -50,7 +50,6 @@ fun UsuarioRegistro(navController: NavController, authViewModel: AuthViewModel =
     var errorMessage by remember { mutableStateOf("") }
     var showSuccessDialog by remember { mutableStateOf(false) }
     val emailRegex = "^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,}$".toRegex()
-    val allowedDomains = listOf("gmail.com", "hotmail.com", "hotmail.es", "yahoo.com")
 
     Scaffold(
         containerColor = BelozColors.MintSurface,
@@ -175,17 +174,12 @@ fun UsuarioRegistro(navController: NavController, authViewModel: AuthViewModel =
                             errorMessage = "El correo electronico no es valido."
                             return@BotonRegistro
                         }
-                        if (passwordController.value.text.length < 6) {
-                            errorMessage = "La contrasena debe tener al menos 6 caracteres."
+                        if (passwordController.value.text.length < 8 || passwordController.value.text.toByteArray(Charsets.UTF_8).size > 72) {
+                            errorMessage = "La contrasena debe tener al menos 8 caracteres y un maximo de 72 bytes."
                             return@BotonRegistro
                         }
                         if (!emailRegex.matches(email)) {
                             errorMessage = "El formato del correo electronico no es valido."
-                            return@BotonRegistro
-                        }
-                        val domain = email.substringAfterLast("@")
-                        if (domain !in allowedDomains) {
-                            errorMessage = "El dominio del correo electronico no esta permitido."
                             return@BotonRegistro
                         }
                         if (passwordController.value.text == confirmPasswordController.value.text) {

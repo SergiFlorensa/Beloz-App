@@ -39,6 +39,7 @@ fun CarritoScreen(
     val totalPrice = cartViewModel.getTotalPrice()
     var showConfirmDialog by remember { mutableStateOf(false) }
     var showSuccessDialog by remember { mutableStateOf(false) }
+    var saving by remember { mutableStateOf(false) }
     var errorMessage by remember { mutableStateOf("") }
     val context = LocalContext.current
     val perfilRepo = remember { PerfilSaborRepository(context) }
@@ -114,7 +115,7 @@ fun CarritoScreen(
                                         onClick = {
                                             cartViewModel.removeFromCart(plato)
                                         },
-                                        modifier = Modifier.size(24.dp)
+                                        modifier = Modifier.size(48.dp)
                                     ) {
                                         Icon(
                                             imageVector = Icons.Default.Delete,
@@ -146,10 +147,10 @@ fun CarritoScreen(
 
                     Button(
                         onClick = {
-                            if (paymentViewModel.datosBancarios != null) {
+                            if (authViewModel.user != null) {
                                 showConfirmDialog = true
                             } else {
-                                errorMessage = "Por favor, complete sus datos bancarios antes de confirmar la compra."
+                                navController.navigate("InicioSesionUsuario")
                             }
                         },
                         modifier = Modifier
@@ -157,7 +158,7 @@ fun CarritoScreen(
                             .padding(16.dp),
                         colors = ButtonDefaults.buttonColors(containerColor = BelozColors.Green)
                     ) {
-                        Text("Confirmar Compra", color = BelozColors.Ink, fontWeight = FontWeight.Bold)
+                        Text("Guardar borrador", color = BelozColors.Ink, fontWeight = FontWeight.Bold)
                     }
                 }
             }
@@ -167,7 +168,8 @@ fun CarritoScreen(
             AlertDialog(
                 onDismissRequest = { showConfirmDialog = false },
                 confirmButton = {
-                    TextButton(onClick = {
+                    TextButton(enabled = !saving, onClick = {
+                        saving = true
                         val itemCount = carrito.sumOf { it.second }
                         scope.launch {
                             perfilRepo.registrarEvento(
@@ -182,11 +184,12 @@ fun CarritoScreen(
                         }
                         cartViewModel.confirmPurchase(
                             onSuccess = {
+                                saving = false
                                 showConfirmDialog = false
                                 scope.launch {
                                     perfilRepo.registrarEvento(
                                         EventoUso(
-                                            tipo = TipoEvento.PURCHASE,
+                                            tipo = TipoEvento.CHECKOUT,
                                             metadata = mapOf(
                                                 "total_price" to totalPrice.toString(),
                                                 "item_count" to itemCount.toString()
@@ -197,13 +200,14 @@ fun CarritoScreen(
                                 showSuccessDialog = true
                             },
                             onError = { error ->
+                                saving = false
                                 showConfirmDialog = false
                                 errorMessage = error
                                 showSuccessDialog = false
                             }
                         )
                     }) {
-                        Text("Confirmar", color = BelozColors.Ink)
+                        Text(if (saving) "Guardando…" else "Guardar", color = BelozColors.Ink)
                     }
                 },
                 dismissButton = {
@@ -211,15 +215,15 @@ fun CarritoScreen(
                         Text("Cancelar", color = BelozColors.Ink)
                     }
                 },
-                title = { Text("Confirmar Compra", color = BelozColors.Ink) },
+                title = { Text("Guardar borrador", color = BelozColors.Ink) },
                 text = {
                     Text(
-                        "¿Estás seguro de que deseas confirmar la compra por un total de €${
+                        "Guardar selección por un total orientativo de €${
                             String.format(
                                 "%.2f",
                                 totalPrice
                             )
-                        }?", color = Color.Gray
+                        }. No se cobrará ni se enviará al restaurante.", color = Color.Gray
                     )
                 }
             )
@@ -233,8 +237,8 @@ fun CarritoScreen(
                         Text("Aceptar", color = BelozColors.Ink)
                     }
                 },
-                title = { Text("Compra Realizada", color = BelozColors.Ink) },
-                text = { Text("Tu compra ha sido realizada con éxito.", color = Color.Gray) }
+                title = { Text("Borrador guardado", color = BelozColors.Ink) },
+                text = { Text("Tu selección está guardada. No se ha realizado ningún cobro ni se ha enviado al restaurante.", color = Color.Gray) }
             )
         }
 

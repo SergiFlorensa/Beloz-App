@@ -44,7 +44,7 @@
 			400000000000000000000003 /* Resources */,
 			400000000000000000000004 /* Config */,
 			400000000000000000000005 /* Products */,
-		); sourceTree = "<group>"; };
+		); };
 		400000000000000000000002 /* Sources */ = {isa = PBXGroup; path = Sources; sourceTree = "<group>"; children = (
 			200000000000000000000001 /* BelozApp.swift */,
 			200000000000000000000002 /* Models.swift */,

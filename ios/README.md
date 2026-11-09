@@ -40,6 +40,17 @@ La app exige HTTPS también en Debug, sin excepciones ATS. Para probar un backen
 
 ## Lista de prueba en Xcode
 
+Antes de abrir el simulador, desde la raiz del repositorio ejecuta
+`bash ios/verify-macos.sh`. Comprueba los archivos de proyecto y compila para
+simulador sin firma. Requiere la aplicacion completa de Xcode y su SDK de iOS,
+no solo Command Line Tools. No instala paquetes, no arranca el servidor y no
+modifica la base de datos. Esta comprobacion aun no se ha ejecutado en macOS.
+
+Para trabajar con iOS no necesitas instalar Gradle, dependencias Android ni
+el backend experimental Python. No hay paquetes externos de Swift ni CocoaPods
+declarados en este proyecto. Node solo hace falta si ejecutas el servidor en
+tu Mac; para usar Render no es necesario arrancarlo localmente.
+
 - Compilar para simulador iPhone con iOS 17+.
 - Confirmar carga de restaurantes, cartas categorizadas e imágenes.
 - Probar búsqueda, filtros y orden por tiempo.

@@ -446,6 +446,6 @@ struct PasswordChangeSheet: View {
         }
         busy = true; defer { busy = false }
         do { try await store.updatePassword(current: current, new: newPassword); saved = true; current = ""; newPassword = ""; confirmation = "" }
-        catch { error = error.localizedDescription }
+        catch { self.error = error.localizedDescription }
     }
 }

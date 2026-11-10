@@ -117,6 +117,7 @@ struct RestaurantDetailView: View {
     @State private var error: String?
     @State private var showChat = false
     @State private var selectedSection: String?
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
 
     private var sections: [MenuSection] { BelozDiscovery.menuSections(dishes) }
     private var activeSection: MenuSection? { sections.first { $0.id == selectedSection } ?? sections.first }
@@ -162,7 +163,11 @@ struct RestaurantDetailView: View {
                         ScrollView(.horizontal, showsIndicators: false) {
                             HStack(spacing: 8) {
                                 ForEach(sections) { section in
-                                    Button { selectedSection = section.id } label: {
+                                    Button {
+                                        withAnimation(reduceMotion ? nil : .easeInOut(duration: 0.2)) {
+                                            selectedSection = section.id
+                                        }
+                                    } label: {
                                         HStack(spacing: 9) {
                                             Circle().fill(section.id == activeSection.id ? BelozStyle.accent : BelozStyle.orange)
                                                 .frame(width: 8, height: 8)

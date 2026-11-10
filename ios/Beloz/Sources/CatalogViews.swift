@@ -2,31 +2,22 @@ import SwiftUI
 
 struct CatalogView: View {
     @EnvironmentObject private var store: BelozStore
-    @State private var query = ""
-    @State private var selectedCuisine = "Todas"
-    @State private var selectedPrice = "Todos"
-    @State private var sortByWait = false
+    @State private var query: String
+    @State private var filter: CatalogFilter
+
+    init(initialFilter: CatalogFilter = CatalogFilter(), initialQuery: String = "") {
+        _filter = State(initialValue: initialFilter)
+        _query = State(initialValue: initialQuery)
+    }
 
     private var cuisines: [String] {
-        Array(Set(store.restaurants.map(\.foodType).filter { !$0.isEmpty })).sorted()
+        let available = store.restaurants.flatMap { $0.foodType.components(separatedBy: ",") }
+            .map { $0.trimmingCharacters(in: .whitespacesAndNewlines) }.filter { !$0.isEmpty }
+        return Array(Set(available).union(filter.cuisines)).sorted()
     }
 
     private var results: [Restaurant] {
-        var items = store.restaurants
-        if selectedCuisine != "Todas" { items = items.filter { $0.foodType == selectedCuisine } }
-        if selectedPrice != "Todos" { items = items.filter { normalizedPrice($0.priceLevel) == selectedPrice } }
-        let needle = query.trimmingCharacters(in: .whitespacesAndNewlines)
-        if !needle.isEmpty {
-            let prefix = items.filter { $0.name.range(of: needle, options: [.anchored, .caseInsensitive, .diacriticInsensitive]) != nil }
-            let remainder = items.filter { item in
-                !prefix.contains(where: { $0.id == item.id }) &&
-                    (item.name.range(of: needle, options: [.caseInsensitive, .diacriticInsensitive]) != nil ||
-                     item.foodType.range(of: needle, options: [.caseInsensitive, .diacriticInsensitive]) != nil)
-            }
-            items = prefix + remainder
-        }
-        if sortByWait { items.sort { ($0.waitTime == 0 ? Int.max : $0.waitTime) < ($1.waitTime == 0 ? Int.max : $1.waitTime) } }
-        return items
+        BelozDiscovery.results(store.restaurants, query: query, filter: filter)
     }
 
     var body: some View {
@@ -48,32 +39,51 @@ struct CatalogView: View {
 
                     ScrollView(.horizontal, showsIndicators: false) {
                         HStack(spacing: 8) {
-                            FilterChip(title: "Todas", selected: selectedCuisine == "Todas") { selectedCuisine = "Todas" }
+                            FilterChip(title: "Todas", selected: filter.cuisines.isEmpty) { filter.cuisines.removeAll() }
                             ForEach(cuisines, id: \.self) { cuisine in
-                                FilterChip(title: cuisine, selected: selectedCuisine == cuisine) { selectedCuisine = cuisine }
+                                FilterChip(title: cuisine, selected: filter.cuisines.contains(cuisine)) {
+                                    if filter.cuisines.contains(cuisine) { filter.cuisines.remove(cuisine) }
+                                    else { filter.cuisines.insert(cuisine) }
+                                }
                             }
                         }
                     }
                     ScrollView(.horizontal, showsIndicators: false) {
                         HStack(spacing: 8) {
-                            ForEach(["Todos", "€", "€€", "€€€"], id: \.self) { price in
-                                FilterChip(title: price, selected: selectedPrice == price) { selectedPrice = price }
+                            FilterChip(title: "Todos", selected: filter.priceTier == nil) { filter.priceTier = nil }
+                            ForEach(1...3, id: \.self) { tier in
+                                FilterChip(title: String(repeating: "€", count: tier), selected: filter.priceTier == tier) {
+                                    filter.priceTier = tier
+                                }
                             }
-                            FilterChip(title: sortByWait ? "Menos espera ✓" : "Menos espera", selected: sortByWait) { sortByWait.toggle() }
+                            Menu {
+                                ForEach(CatalogOrder.allCases, id: \.self) { order in
+                                    Button(order.title) { filter.order = order }
+                                }
+                            } label: {
+                                Label(filter.order.title, systemImage: "arrow.up.arrow.down")
+                                    .font(.system(size: 13, weight: .semibold))
+                                    .foregroundStyle(BelozStyle.forest).padding(.horizontal, 14).frame(minHeight: 38)
+                                    .background(BelozStyle.mint, in: Capsule())
+                            }
                         }
                     }
                     HStack {
                         Text("\(results.count) restaurantes").font(.subheadline.weight(.semibold)).foregroundStyle(BelozStyle.muted)
                         Spacer()
-                        if selectedCuisine != "Todas" || selectedPrice != "Todos" || sortByWait {
+                        if filter.isActive {
                             Button("Limpiar filtros") {
-                                selectedCuisine = "Todas"; selectedPrice = "Todos"; sortByWait = false
+                                filter = CatalogFilter()
                             }.font(.caption.weight(.semibold))
                         }
                     }
 
                     if store.isLoadingRestaurants && store.restaurants.isEmpty {
                         ProgressView("Cargando restaurantes…").frame(maxWidth: .infinity).padding(36)
+                    } else if let error = store.restaurantError, store.restaurants.isEmpty {
+                        InlineNotice(text: error, isError: true)
+                        Button("Reintentar") { Task { await store.loadRestaurants() } }
+                            .buttonStyle(PrimaryButtonStyle())
                     } else if results.isEmpty {
                         ContentUnavailableView("Sin resultados", systemImage: "magnifyingglass",
                             description: Text("Prueba con otro nombre o cambia los filtros."))
@@ -97,13 +107,6 @@ struct CatalogView: View {
         .refreshable { await store.loadRestaurants() }
     }
 
-    private func normalizedPrice(_ value: String) -> String {
-        let value = value.lowercased()
-        if value.contains("€€€") || value.contains("caro") || value.contains("alto") { return "€€€" }
-        if value.contains("€€") || value.contains("medio") || value.contains("moderado") { return "€€" }
-        if value.contains("€") || value.contains("bajo") || value.contains("barato") || value.contains("econom") { return "€" }
-        return ""
-    }
 }
 
 struct RestaurantDetailView: View {
@@ -184,7 +187,7 @@ struct RestaurantDetailView: View {
         }
         .navigationTitle(restaurant.name)
         .navigationBarTitleDisplayMode(.inline)
-        .task { await loadMenu() }
+        .task { store.recordVisit(restaurant); await loadMenu() }
     }
 
     private func loadMenu() async {

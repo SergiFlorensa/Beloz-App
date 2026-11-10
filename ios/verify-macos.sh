@@ -12,6 +12,11 @@ xcrun --sdk iphonesimulator --show-sdk-path
 plutil -lint Beloz.xcodeproj/project.pbxproj
 plutil -lint Beloz/Resources/PrivacyInfo.xcprivacy
 
+test_dir="$(mktemp -d "${TMPDIR:-/tmp}/beloz-contract-tests.XXXXXX")"
+trap 'rm -rf "$test_dir"' EXIT
+swiftc Beloz/Sources/Models.swift Beloz/Sources/Discovery.swift Tests/ContractTests.swift -o "$test_dir/contracts"
+"$test_dir/contracts"
+
 # A simulator build does not need a developer signing identity or a database.
 xcodebuild -project Beloz.xcodeproj -scheme Beloz -configuration Debug \
   -destination 'generic/platform=iOS Simulator' \

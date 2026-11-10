@@ -16,7 +16,9 @@ final class BelozStore: ObservableObject {
     @Published private(set) var failedChatMessage: String?
     @Published private(set) var orders: [Order] = []
     @Published private(set) var isLoadingOrders = false
+    @Published private(set) var ordersError: String?
     @Published private(set) var isSubmittingOrder = false
+    @Published private(set) var personalizationEnabled = UserDefaults.standard.bool(forKey: "beloz.personalization.enabled")
 
     private let api = BelozAPI.shared
 
@@ -47,6 +49,34 @@ final class BelozStore: ObservableObject {
     func loadDishes(for restaurant: Restaurant) async throws -> [Dish] {
         let loaded = try await api.dishes(restaurantId: restaurant.id)
         return loaded.filter { $0.id > 0 }
+    }
+
+    func setPersonalization(_ enabled: Bool) {
+        personalizationEnabled = enabled
+        UserDefaults.standard.set(enabled, forKey: "beloz.personalization.enabled")
+        if !enabled { clearTasteHistory() }
+    }
+
+    func clearTasteHistory() {
+        UserDefaults.standard.removeObject(forKey: "beloz.personalization.cuisines")
+    }
+
+    func recordVisit(_ restaurant: Restaurant) {
+        guard personalizationEnabled else { return }
+        let type = restaurant.foodType.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !type.isEmpty else { return }
+        var visits = UserDefaults.standard.stringArray(forKey: "beloz.personalization.cuisines") ?? []
+        visits.append(type)
+        UserDefaults.standard.set(Array(visits.suffix(200)), forKey: "beloz.personalization.cuisines")
+    }
+
+    private var tasteProfile: TasteProfile? {
+        guard personalizationEnabled else { return nil }
+        let visits = UserDefaults.standard.stringArray(forKey: "beloz.personalization.cuisines") ?? []
+        let counts = visits.reduce(into: [String: Int]()) { $0[$1, default: 0] += 1 }
+        let entries = counts.sorted { $0.value == $1.value ? $0.key < $1.key : $0.value > $1.value }
+            .prefix(5).map { TasteProfile.Entry(clave: $0.key, conteo: $0.value) }
+        return entries.isEmpty ? nil : TasteProfile(topTypes: entries)
     }
 
     @discardableResult
@@ -95,7 +125,7 @@ final class BelozStore: ObservableObject {
         failedChatMessage = nil
         defer { isSendingChat = false }
         do {
-            let reply = try await api.chat(message: message, history: history)
+            let reply = try await api.chat(message: message, history: history, profile: tasteProfile)
             chatMessages.append(ConversationMessage(role: .assistant, text: reply.response,
                 provider: reply.provider, suggestions: reply.suggestions, sources: reply.sources))
         } catch {
@@ -147,12 +177,18 @@ final class BelozStore: ObservableObject {
     func loadOrders() async {
         guard let user = session else { orders = []; return }
         isLoadingOrders = true
+        ordersError = nil
         defer { isLoadingOrders = false }
         do { orders = try await api.orders(userId: user.id).sorted { $0.id > $1.id } }
         catch {
             orders = []
+            ordersError = error.localizedDescription
             if SecureSessionStore.read() == nil { session = nil }
         }
+    }
+
+    func loadOrderDetails(for order: Order) async throws -> [OrderDetail] {
+        try await api.orderDetails(orderId: order.id)
     }
 
     func submitOrder() async throws -> Order {

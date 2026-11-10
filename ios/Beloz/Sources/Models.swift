@@ -22,7 +22,7 @@ struct Restaurant: Codable, Hashable, Identifiable {
         foodType = values.first(String.self, "type_of_food", "typeOfFood", "tipo_comida") ?? ""
         country = values.first(String.self, "country", "pais") ?? ""
         isPopular = values.first(Bool.self, "es_popular", "is_popular", "isPopular") ?? false
-        rating = values.first(Double.self, "valoracion", "rating") ?? 0
+        rating = values.firstDouble("valoracion", "rating") ?? 0
         relevance = values.first(Int.self, "relevancia", "relevance") ?? 0
     }
 }
@@ -41,7 +41,7 @@ struct Dish: Codable, Hashable, Identifiable {
         id = values.first(Int.self, "id", "plato_id") ?? 0
         name = values.first(String.self, "name", "nombre") ?? "Plato"
         details = values.first(String.self, "description", "descripcion") ?? ""
-        price = values.first(Double.self, "price", "precio") ?? 0
+        price = values.firstDouble("price", "precio") ?? 0
         imagePath = values.first(String.self, "image_path", "imagePath")
         restaurantId = values.first(Int.self, "restaurante_id", "restaurant_id", "restaurantId") ?? 0
         category = values.first(String.self, "category", "categoria")?.trimmingCharacters(in: .whitespacesAndNewlines)
@@ -82,6 +82,24 @@ struct AuthResponse: Decodable {
 struct ChatRequest: Encodable {
     let message: String
     let history: [String]
+    let profile: TasteProfile?
+
+    enum CodingKeys: String, CodingKey {
+        case message, history
+        case profile = "perfil_sabor"
+    }
+}
+
+struct TasteProfile: Encodable {
+    struct Entry: Encodable {
+        let clave: String
+        let conteo: Int
+    }
+    let topTypes: [Entry]
+
+    enum CodingKeys: String, CodingKey {
+        case topTypes = "top_tipos_comida"
+    }
 }
 
 struct ChatReply: Decodable {
@@ -117,7 +135,7 @@ struct ChatSuggestion: Decodable, Identifiable {
         restaurantName = values.first(String.self, "restaurante_nombre", "restaurant_name") ?? "Restaurante"
         imagePath = values.first(String.self, "image_path", "imagePath")
         dishName = values.first(String.self, "plato", "dish")
-        price = values.first(Double.self, "price", "precio")
+        price = values.firstDouble("price", "precio")
         waitTime = values.first(Int.self, "wait_time", "waitTime")
         foodType = values.first(String.self, "type_of_food", "food_type")
         reason = values.first(String.self, "motivo", "reason")
@@ -151,7 +169,24 @@ struct Order: Decodable, Identifiable {
         userId = values.first(Int.self, "user_id", "userId") ?? 0
         restaurantId = values.first(Int.self, "restaurant_id", "restaurante_id") ?? 0
         date = values.first(String.self, "fecha", "created_at") ?? ""
-        total = values.first(Double.self, "total") ?? 0
+        total = values.firstDouble("total") ?? 0
+    }
+}
+
+struct OrderDetail: Decodable, Identifiable {
+    let id: Int
+    let name: String
+    let restaurantName: String
+    let quantity: Int
+    let price: Double
+
+    init(from decoder: Decoder) throws {
+        let values = try decoder.container(keyedBy: AnyCodingKey.self)
+        id = values.first(Int.self, "id_detalle", "id") ?? 0
+        name = values.first(String.self, "plato_nombre", "name") ?? "Plato"
+        restaurantName = values.first(String.self, "restaurante_nombre") ?? ""
+        quantity = values.first(Int.self, "cantidad", "quantity") ?? 0
+        price = values.firstDouble("precio", "price") ?? 0
     }
 }
 
@@ -201,6 +236,18 @@ extension KeyedDecodingContainer where Key == AnyCodingKey {
     func first<T: Decodable>(_ type: T.Type, _ names: String...) -> T? {
         for name in names {
             if let value = try? decode(T.self, forKey: AnyCodingKey(name)) { return value }
+        }
+        return nil
+    }
+
+    func firstDouble(_ names: String...) -> Double? {
+        for name in names {
+            let key = AnyCodingKey(name)
+            if let value = try? decode(Double.self, forKey: key), value.isFinite { return value }
+            if let text = try? decode(String.self, forKey: key),
+               let value = Double(text.trimmingCharacters(in: .whitespacesAndNewlines)), value.isFinite {
+                return value
+            }
         }
         return nil
     }

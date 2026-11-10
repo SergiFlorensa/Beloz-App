@@ -58,8 +58,8 @@ actor BelozAPI {
         try await get("api/restaurantes/\(restaurantId)/platos")
     }
 
-    func chat(message: String, history: [String]) async throws -> ChatReply {
-        try await post("api/chat", body: ChatRequest(message: message, history: history))
+    func chat(message: String, history: [String], profile: TasteProfile?) async throws -> ChatReply {
+        try await post("api/chat", body: ChatRequest(message: message, history: history, profile: profile))
     }
 
     func login(email: String, password: String) async throws -> UserSession {
@@ -122,6 +122,10 @@ actor BelozAPI {
         }
         components.queryItems = [URLQueryItem(name: "user_id", value: String(userId))]
         return try await send(components.url!, method: "GET", authenticated: true)
+    }
+
+    func orderDetails(orderId: Int) async throws -> [OrderDetail] {
+        try await send(endpoint("api/pedidos/\(orderId)/detalles"), method: "GET", authenticated: true)
     }
 
     func createOrder(_ order: CreateOrderRequest) async throws -> Order {

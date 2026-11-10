@@ -21,11 +21,13 @@ La app exige HTTPS también en Debug, sin excepciones ATS. Para probar un backen
 
 ## Funciones incluidas
 
-- Inicio con restaurantes destacados, imágenes, valoración, tiempo y precio disponibles en API.
-- Búsqueda con coincidencia por prefijo primero; filtros por cocina, precio y espera.
+- Inicio con menú, búsqueda por prefijo, filtros, tres recomendaciones comparables y restaurantes destacados.
+- Filtros por varios tipos de cocina, precio orientativo y orden por nombre o espera.
+- Mapa centrado en Reus, sin acceso a la ubicación personal ni marcadores de restaurantes inventados.
 - Carta remota agrupada por categoría e imágenes de platos, con cesta persistente en el dispositivo.
 - Chat Beloz AI conectado a `/api/chat`, historial breve durante la sesión, sugerencias y fuentes devueltas por el servicio.
-- Registro, inicio/cierre de sesión, cambios de correo, teléfono y contraseña, eliminación de cuenta e historial de pedidos.
+- Registro, inicio/cierre de sesión, cambios de correo, teléfono y contraseña, eliminación de cuenta e historial y detalles de pedidos.
+- Gustos opcionales: con consentimiento se guardan localmente los tipos de cocina visitados y el chat recibe un resumen; al desactivarlo se borra el historial.
 - Envío del pedido según el contrato usado por Android. El backend actual no ofrece un cobro online integrado en este flujo: la app no guarda tarjetas ni afirma que haya cobrado.
 
 ## Seguridad y límites conocidos
@@ -36,12 +38,13 @@ La app exige HTTPS también en Debug, sin excepciones ATS. Para probar un backen
 - Solicitudes de API limitadas al host configurado; no se siguen redirecciones HTTP que pudieran reenviar el token.
 - Imágenes relativas se resuelven contra el backend y las URL absolutas solo se cargan con HTTPS.
 - No se solicitaron permisos de ubicación, contactos, cámara ni fotos.
-- El mapa, pagos con tarjeta, notificaciones push y seguimiento en tiempo real no se incluyen: los contratos disponibles en Android no proporcionan un flujo de servidor completo y verificable para esas funciones.
+- El mapa solo señala Reus: el catálogo no proporciona coordenadas verificadas de restaurantes. Pagos con tarjeta, notificaciones push y seguimiento en tiempo real no están disponibles en esta versión.
 
 ## Lista de prueba en Xcode
 
 Antes de abrir el simulador, desde la raiz del repositorio ejecuta
-`bash ios/verify-macos.sh`. Comprueba los archivos de proyecto y compila para
+`bash ios/verify-macos.sh`. Comprueba los archivos de proyecto, ejecuta pruebas
+de búsqueda, filtros, precios y datos, y compila para
 simulador sin firma. Requiere la aplicacion completa de Xcode y su SDK de iOS,
 no solo Command Line Tools. No instala paquetes, no arranca el servidor y no
 modifica la base de datos. Esta comprobacion aun no se ha ejecutado en macOS.

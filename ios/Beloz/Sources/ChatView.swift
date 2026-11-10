@@ -3,6 +3,7 @@ import SwiftUI
 struct ChatView: View {
     @EnvironmentObject private var store: BelozStore
     @State private var draft = ""
+    @State private var didApplyInitialPrompt = false
     var initialPrompt: String? = nil
 
     private let prompts = ["Tengo 12 € y voy con prisa", "Quiero algo ligero", "Sorpréndeme para cenar"]
@@ -107,8 +108,10 @@ struct ChatView: View {
         .navigationTitle("Beloz AI")
         .navigationBarTitleDisplayMode(.inline)
         .task {
-            if let initialPrompt, !initialPrompt.isEmpty, store.chatMessages.count == 1 {
-                send(initialPrompt)
+            if let initialPrompt, !initialPrompt.isEmpty, !didApplyInitialPrompt {
+                didApplyInitialPrompt = true
+                if store.isSendingChat { draft = initialPrompt }
+                else { send(initialPrompt) }
             }
         }
     }

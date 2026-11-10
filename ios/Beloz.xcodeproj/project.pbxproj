@@ -16,6 +16,9 @@
 		100000000000000000000009 /* AccountCartViews.swift in Sources */ = {isa = PBXBuildFile; fileRef = 200000000000000000000009 /* AccountCartViews.swift */; };
 		100000000000000000000010 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 200000000000000000000010 /* Assets.xcassets */; };
 		100000000000000000000011 /* PrivacyInfo.xcprivacy in Resources */ = {isa = PBXBuildFile; fileRef = 200000000000000000000013 /* PrivacyInfo.xcprivacy */; };
+		100000000000000000000014 /* Discovery.swift in Sources */ = {isa = PBXBuildFile; fileRef = 200000000000000000000014 /* Discovery.swift */; };
+		100000000000000000000015 /* HomeExperience.swift in Sources */ = {isa = PBXBuildFile; fileRef = 200000000000000000000015 /* HomeExperience.swift */; };
+		100000000000000000000016 /* OrdersView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 200000000000000000000016 /* OrdersView.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -32,6 +35,9 @@
 		200000000000000000000011 /* Shared.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = Shared.xcconfig; sourceTree = "<group>"; };
 		200000000000000000000012 /* Beloz.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Beloz.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		200000000000000000000013 /* PrivacyInfo.xcprivacy */ = {isa = PBXFileReference; lastKnownFileType = text.xml; path = PrivacyInfo.xcprivacy; sourceTree = "<group>"; };
+		200000000000000000000014 /* Discovery.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Discovery.swift; sourceTree = "<group>"; };
+		200000000000000000000015 /* HomeExperience.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HomeExperience.swift; sourceTree = "<group>"; };
+		200000000000000000000016 /* OrdersView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OrdersView.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -55,6 +61,9 @@
 			200000000000000000000007 /* CatalogViews.swift */,
 			200000000000000000000008 /* ChatView.swift */,
 			200000000000000000000009 /* AccountCartViews.swift */,
+			200000000000000000000014 /* Discovery.swift */,
+			200000000000000000000015 /* HomeExperience.swift */,
+			200000000000000000000016 /* OrdersView.swift */,
 		); };
 		400000000000000000000003 /* Resources */ = {isa = PBXGroup; path = Resources; sourceTree = "<group>"; children = (
 			200000000000000000000010 /* Assets.xcassets */,
@@ -87,6 +96,9 @@
 			100000000000000000000007 /* CatalogViews.swift in Sources */,
 			100000000000000000000008 /* ChatView.swift in Sources */,
 			100000000000000000000009 /* AccountCartViews.swift in Sources */,
+			100000000000000000000014 /* Discovery.swift in Sources */,
+			100000000000000000000015 /* HomeExperience.swift in Sources */,
+			100000000000000000000016 /* OrdersView.swift in Sources */,
 		); runOnlyForDeploymentPostprocessing = 0; };
 /* End PBXSourcesBuildPhase section */
 

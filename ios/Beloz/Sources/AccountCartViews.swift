@@ -149,7 +149,11 @@ struct AccountView: View {
                             Spacer()
                             if store.isLoadingOrders { ProgressView().controlSize(.small) }
                         }
-                        if store.orders.isEmpty && !store.isLoadingOrders {
+                        if let error = store.ordersError {
+                            InlineNotice(text: error, isError: true)
+                            Button("Reintentar") { Task { await store.loadOrders() } }
+                                .font(.subheadline.weight(.semibold))
+                        } else if store.orders.isEmpty && !store.isLoadingOrders {
                             Text("Todavía no tienes pedidos registrados.")
                                 .font(.subheadline).foregroundStyle(BelozStyle.muted)
                                 .frame(maxWidth: .infinity, alignment: .leading).padding(16)
@@ -157,14 +161,17 @@ struct AccountView: View {
                         } else {
                             VStack(spacing: 0) {
                                 ForEach(store.orders) { order in
-                                    HStack {
-                                        VStack(alignment: .leading, spacing: 4) {
-                                            Text("Pedido #\(order.id)").font(.subheadline.weight(.semibold))
-                                            Text(order.date).font(.caption).foregroundStyle(BelozStyle.muted).lineLimit(1)
-                                        }
-                                        Spacer()
-                                        Text(order.total.euro).font(.subheadline.weight(.bold)).foregroundStyle(BelozStyle.forest)
-                                    }.padding(14)
+                                    NavigationLink(destination: OrderDetailView(order: order)) {
+                                        HStack {
+                                            VStack(alignment: .leading, spacing: 4) {
+                                                Text("Pedido #\(order.id)").font(.subheadline.weight(.semibold))
+                                                Text(order.date).font(.caption).foregroundStyle(BelozStyle.muted).lineLimit(1)
+                                            }
+                                            Spacer()
+                                            Text(order.total.euro).font(.subheadline.weight(.bold)).foregroundStyle(BelozStyle.forest)
+                                            Image(systemName: "chevron.right").font(.caption).foregroundStyle(BelozStyle.muted)
+                                        }.padding(14).contentShape(Rectangle())
+                                    }.buttonStyle(.plain)
                                     if order.id != store.orders.last?.id { Divider().overlay(BelozStyle.line) }
                                 }
                             }
@@ -187,6 +194,23 @@ struct AccountView: View {
                         .padding(19).frame(maxWidth: .infinity, alignment: .leading)
                         .background(.white, in: RoundedRectangle(cornerRadius: 20))
                         .overlay(RoundedRectangle(cornerRadius: 20).stroke(BelozStyle.line, lineWidth: 1))
+                    }
+                    VStack(alignment: .leading, spacing: 10) {
+                        Text("Tus preferencias").font(.headline)
+                        Toggle("Recordar mis gustos", isOn: Binding(
+                            get: { store.personalizationEnabled },
+                            set: { store.setPersonalization($0) }
+                        ))
+                        Text("Guarda los tipos de cocina que visitas en este dispositivo. Si lo activas, el chat recibe un resumen de hasta cinco tipos. Al desactivarlo se borra el historial.")
+                            .font(.caption).foregroundStyle(BelozStyle.muted)
+                        Button("Borrar historial de gustos") { store.clearTasteHistory() }
+                            .font(.subheadline.weight(.semibold)).disabled(!store.personalizationEnabled)
+                    }.padding(.vertical, 8)
+                    NavigationLink(destination: PaymentAvailabilityView()) {
+                        Label("Pagos", systemImage: "creditcard").frame(maxWidth: .infinity, minHeight: 48, alignment: .leading)
+                    }
+                    NavigationLink(destination: PrivacySummaryView()) {
+                        Label("Privacidad", systemImage: "hand.raised").frame(maxWidth: .infinity, minHeight: 48, alignment: .leading)
                     }
                     VStack(alignment: .leading, spacing: 6) {
                         Eyebrow(text: "Privacidad")
@@ -212,6 +236,30 @@ struct AccountView: View {
         .alert("Cuenta", isPresented: Binding(get: { alertText != nil }, set: { if !$0 { alertText = nil } })) {
             Button("Aceptar", role: .cancel) { alertText = nil }
         } message: { Text(alertText ?? "") }
+    }
+}
+
+private struct PaymentAvailabilityView: View {
+    var body: some View {
+        ScreenBackdrop {
+            ContentUnavailableView("Pago online no disponible", systemImage: "creditcard",
+                description: Text("Beloz no almacena tarjetas ni realiza cobros online. Confirma el pago con el restaurante."))
+                .padding(18)
+        }
+        .navigationTitle("Pagos").navigationBarTitleDisplayMode(.inline)
+    }
+}
+
+private struct PrivacySummaryView: View {
+    var body: some View {
+        ScreenBackdrop {
+            List {
+                Section("Sesión") { Text("La sesión se guarda en el llavero de este dispositivo.") }
+                Section("Pedidos y chat") { Text("Los pedidos y mensajes enviados se procesan en el servidor configurado.") }
+                Section("Ubicación") { Text("El mapa muestra Reus y no solicita tu ubicación.") }
+            }.scrollContentBackground(.hidden)
+        }
+        .navigationTitle("Privacidad").navigationBarTitleDisplayMode(.inline)
     }
 }
 

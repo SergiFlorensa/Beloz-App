@@ -35,6 +35,9 @@ struct CartView: View {
                                 Text(store.cartTotal.euro).font(.system(size: 20, weight: .bold, design: .rounded))
                             }
                             .padding(.horizontal, 2)
+                            if store.cartHasInvalidPrice {
+                                InlineNotice(text: "Hay platos sin precio. Elimínalos y vuelve a añadirlos desde la carta.", isError: true)
+                            }
                             InlineNotice(text: "Este flujo registra el pedido, pero no realiza un cobro online. Confirma el método de pago con el restaurante.")
                         }
                         .padding(18).padding(.bottom, 12)
@@ -56,7 +59,7 @@ struct CartView: View {
                         }
                     } label: {
                         HStack {
-                            if store.isSubmittingOrder { ProgressView().tint(.white) }
+                            if store.isSubmittingOrder { ProgressView().tint(BelozStyle.ink) }
                             Text(store.session == nil ? "Iniciar sesión para pedir" : "Enviar pedido")
                             Spacer()
                             Text(store.cartTotal.euro)
@@ -64,7 +67,7 @@ struct CartView: View {
                         .padding(.horizontal, 18).frame(maxWidth: .infinity, minHeight: 52)
                     }
                     .buttonStyle(PrimaryButtonStyle())
-                    .disabled(store.isSubmittingOrder)
+                    .disabled(store.isSubmittingOrder || store.cartHasInvalidPrice)
                 }
                 .padding(.horizontal, 16).padding(.top, 10).padding(.bottom, 4)
                 .background(.regularMaterial)
@@ -90,13 +93,15 @@ private struct CartLineRow: View {
         HStack(spacing: 11) {
             VStack(alignment: .leading, spacing: 4) {
                 Text(line.dish.name).font(.subheadline.weight(.semibold)).lineLimit(2)
-                Text(line.lineTotal.euro).font(.caption.weight(.semibold)).foregroundStyle(BelozStyle.green)
+                Text(line.dish.price.isFinite && line.dish.price > 0 ? line.lineTotal.euro : "Precio no disponible")
+                    .font(.caption.weight(.semibold)).foregroundStyle(BelozStyle.green)
             }
             Spacer()
             HStack(spacing: 12) {
                 Button { setQuantity(line.quantity - 1) } label: { Image(systemName: "minus.circle").font(.title3) }
                 Text("\(line.quantity)").font(.subheadline.monospacedDigit().weight(.semibold)).frame(minWidth: 16)
                 Button { setQuantity(line.quantity + 1) } label: { Image(systemName: "plus.circle").font(.title3) }
+                    .disabled(line.quantity >= 99)
             }
             .foregroundStyle(BelozStyle.forest)
             .buttonStyle(.plain)
@@ -108,6 +113,7 @@ private struct CartLineRow: View {
 struct AccountView: View {
     @EnvironmentObject private var store: BelozStore
     @State private var showAuth = false
+    @State private var startInRegister = false
     @State private var showSettings = false
     @State private var showPassword = false
     @State private var confirmDelete = false
@@ -115,116 +121,60 @@ struct AccountView: View {
 
     var body: some View {
         ScreenBackdrop {
-            ScrollView(showsIndicators: false) {
-                VStack(alignment: .leading, spacing: 18) {
-                    SectionTitle(title: "Cuenta", subtitle: "Tus datos y pedidos")
+            ScrollView {
+                VStack(alignment: .leading, spacing: 16) {
+                    Image(systemName: "person.fill").font(.system(size: 34)).foregroundStyle(BelozStyle.green)
+                    Text(store.session.map { "Bienvenido/a, \($0.name)" } ?? "A tu gusto.")
+                        .font(.system(size: 26, weight: .bold)).foregroundStyle(BelozStyle.ink)
+
                     if let user = store.session {
-                        VStack(alignment: .leading, spacing: 14) {
-                            HStack(spacing: 13) {
-                                Text(String(user.name.prefix(1)).uppercased().nonEmpty ?? "B")
-                                    .font(.system(size: 23, weight: .bold, design: .rounded)).foregroundStyle(BelozStyle.forest)
-                                    .frame(width: 54, height: 54).background(BelozStyle.mint, in: Circle())
-                                VStack(alignment: .leading, spacing: 4) {
-                                    Eyebrow(text: "Bienvenido/a")
-                                    Text(user.displayName.isEmpty ? user.email : user.displayName)
-                                        .font(.system(size: 21, weight: .bold, design: .rounded)).lineLimit(1)
-                                    Text(user.email).font(.subheadline).foregroundStyle(BelozStyle.muted)
-                                }
-                            }
-                            if !user.phone.isEmpty { Label(user.phone, systemImage: "phone").font(.subheadline).foregroundStyle(BelozStyle.muted) }
-                            Divider().overlay(BelozStyle.line)
-                            HStack(spacing: 10) {
-                                Button("Editar datos") { showSettings = true }.buttonStyle(PrimaryButtonStyle(fill: BelozStyle.green))
-                                Button("Seguridad") { showPassword = true }
-                                    .font(.subheadline.weight(.semibold)).foregroundStyle(BelozStyle.forest)
-                                    .frame(minHeight: 46).padding(.horizontal, 15)
-                                    .background(BelozStyle.mint, in: Capsule())
-                            }
-                        }
-                        .padding(17).background(.white, in: RoundedRectangle(cornerRadius: 20))
-                        .overlay(RoundedRectangle(cornerRadius: 20).stroke(BelozStyle.line, lineWidth: 1))
-
-                        HStack {
-                            SectionTitle(title: "Mis pedidos")
-                            Spacer()
-                            if store.isLoadingOrders { ProgressView().controlSize(.small) }
-                        }
-                        if let error = store.ordersError {
-                            InlineNotice(text: error, isError: true)
-                            Button("Reintentar") { Task { await store.loadOrders() } }
-                                .font(.subheadline.weight(.semibold))
-                        } else if store.orders.isEmpty && !store.isLoadingOrders {
-                            Text("Todavía no tienes pedidos registrados.")
-                                .font(.subheadline).foregroundStyle(BelozStyle.muted)
-                                .frame(maxWidth: .infinity, alignment: .leading).padding(16)
-                                .background(.white, in: RoundedRectangle(cornerRadius: 16))
-                        } else {
-                            VStack(spacing: 0) {
-                                ForEach(store.orders) { order in
-                                    NavigationLink(destination: OrderDetailView(order: order)) {
-                                        HStack {
-                                            VStack(alignment: .leading, spacing: 4) {
-                                                Text("Pedido #\(order.id)").font(.subheadline.weight(.semibold))
-                                                Text(order.date).font(.caption).foregroundStyle(BelozStyle.muted).lineLimit(1)
-                                            }
-                                            Spacer()
-                                            Text(order.total.euro).font(.subheadline.weight(.bold)).foregroundStyle(BelozStyle.forest)
-                                            Image(systemName: "chevron.right").font(.caption).foregroundStyle(BelozStyle.muted)
-                                        }.padding(14).contentShape(Rectangle())
-                                    }.buttonStyle(.plain)
-                                    if order.id != store.orders.last?.id { Divider().overlay(BelozStyle.line) }
-                                }
-                            }
-                            .background(.white, in: RoundedRectangle(cornerRadius: 17))
-                        }
-
-                        Button("Cerrar sesión") { Task { await store.logout() } }
-                            .font(.subheadline.weight(.semibold)).foregroundStyle(BelozStyle.muted)
-                            .frame(maxWidth: .infinity, minHeight: 46)
-                        Button("Eliminar mi cuenta", role: .destructive) { confirmDelete = true }
-                            .font(.caption.weight(.semibold)).frame(maxWidth: .infinity)
+                        Text(user.email).font(.subheadline).foregroundStyle(BelozStyle.muted)
+                        accountButton("Correo electrónico", icon: "envelope") { showSettings = true }
+                        accountButton("Contraseña", icon: "lock") { showPassword = true }
+                        accountButton("Número de teléfono", icon: "phone") { showSettings = true }
+                        NavigationLink(destination: OrdersView()) {
+                            accountRow("Mis pedidos", icon: "clock.arrow.circlepath")
+                        }.buttonStyle(.plain)
                     } else {
-                        VStack(alignment: .leading, spacing: 14) {
-                            Image(systemName: "person.crop.circle.badge.checkmark").font(.system(size: 38)).foregroundStyle(BelozStyle.green)
-                            Text("Tu cuenta Beloz").font(.system(size: 22, weight: .bold, design: .rounded))
-                            Text("Inicia sesión para consultar tus pedidos y mantener tu perfil.")
-                                .font(.subheadline).foregroundStyle(BelozStyle.muted)
-                            Button("Iniciar sesión o registrarme") { showAuth = true }.buttonStyle(PrimaryButtonStyle())
-                        }
-                        .padding(19).frame(maxWidth: .infinity, alignment: .leading)
-                        .background(.white, in: RoundedRectangle(cornerRadius: 20))
-                        .overlay(RoundedRectangle(cornerRadius: 20).stroke(BelozStyle.line, lineWidth: 1))
+                        Button("Iniciar sesión") { startInRegister = false; showAuth = true }
+                            .buttonStyle(PrimaryButtonStyle()).frame(maxWidth: .infinity, alignment: .leading)
+                        Button("Crear cuenta") { startInRegister = true; showAuth = true }
+                            .font(.subheadline.weight(.semibold)).foregroundStyle(BelozStyle.green)
+                            .frame(minHeight: 44)
                     }
-                    VStack(alignment: .leading, spacing: 10) {
-                        Text("Tus preferencias").font(.headline)
-                        Toggle("Recordar mis gustos", isOn: Binding(
-                            get: { store.personalizationEnabled },
-                            set: { store.setPersonalization($0) }
-                        ))
-                        Text("Guarda los tipos de cocina que visitas en este dispositivo. Si lo activas, el chat recibe un resumen de hasta cinco tipos. Al desactivarlo se borra el historial.")
-                            .font(.caption).foregroundStyle(BelozStyle.muted)
-                        Button("Borrar historial de gustos") { store.clearTasteHistory() }
-                            .font(.subheadline.weight(.semibold)).disabled(!store.personalizationEnabled)
-                    }.padding(.vertical, 8)
+
+                    Divider().overlay(BelozStyle.line)
+                    Text("Tus preferencias").font(.headline)
+                    Toggle("Recordar mis gustos", isOn: Binding(
+                        get: { store.personalizationEnabled },
+                        set: { store.setPersonalization($0) }
+                    ))
+                    .tint(BelozStyle.green)
+                    Text("Guarda los tipos de cocina que visitas en este dispositivo. Si lo activas, el chat recibe un resumen de hasta cinco tipos. Al desactivarlo se borra el historial.")
+                        .font(.caption).foregroundStyle(BelozStyle.muted)
+                    Button("Borrar historial de gustos") { store.clearTasteHistory() }
+                        .font(.subheadline.weight(.semibold)).disabled(!store.personalizationEnabled)
+
+                    Divider().overlay(BelozStyle.line)
                     NavigationLink(destination: PaymentAvailabilityView()) {
-                        Label("Pagos", systemImage: "creditcard").frame(maxWidth: .infinity, minHeight: 48, alignment: .leading)
-                    }
+                        accountRow("Pagos", icon: "creditcard")
+                    }.buttonStyle(.plain)
                     NavigationLink(destination: PrivacySummaryView()) {
-                        Label("Privacidad", systemImage: "hand.raised").frame(maxWidth: .infinity, minHeight: 48, alignment: .leading)
+                        accountRow("Privacidad", icon: "hand.raised")
+                    }.buttonStyle(.plain)
+                    if store.session != nil {
+                        Button("Cerrar sesión") { Task { await store.logout() } }
+                            .font(.subheadline.weight(.semibold)).frame(minHeight: 48)
+                        Button("Eliminar mi cuenta", role: .destructive) { confirmDelete = true }
+                            .font(.subheadline).frame(minHeight: 44)
                     }
-                    VStack(alignment: .leading, spacing: 6) {
-                        Eyebrow(text: "Privacidad")
-                        Text("La sesión se guarda en el llavero seguro de este dispositivo. Esta app no almacena tarjetas ni procesa pagos online.")
-                            .font(.caption).foregroundStyle(BelozStyle.muted).fixedSize(horizontal: false, vertical: true)
-                    }.padding(.top, 8)
                 }
-                .padding(18).padding(.bottom, 25)
+                .padding(24)
             }
         }
-        .navigationTitle("Cuenta")
+        .navigationTitle("Tu cuenta")
         .navigationBarTitleDisplayMode(.inline)
-        .task { if store.session != nil { await store.loadOrders() } }
-        .sheet(isPresented: $showAuth) { AccountAuthSheet() }
+        .sheet(isPresented: $showAuth) { AccountAuthSheet(startInRegister: startInRegister) }
         .sheet(isPresented: $showSettings) { AccountSettingsSheet() }
         .sheet(isPresented: $showPassword) { PasswordChangeSheet() }
         .confirmationDialog("¿Eliminar la cuenta?", isPresented: $confirmDelete, titleVisibility: .visible) {
@@ -236,6 +186,19 @@ struct AccountView: View {
         .alert("Cuenta", isPresented: Binding(get: { alertText != nil }, set: { if !$0 { alertText = nil } })) {
             Button("Aceptar", role: .cancel) { alertText = nil }
         } message: { Text(alertText ?? "") }
+    }
+
+    private func accountButton(_ title: String, icon: String, action: @escaping () -> Void) -> some View {
+        Button(action: action) { accountRow(title, icon: icon) }.buttonStyle(.plain)
+    }
+
+    private func accountRow(_ title: String, icon: String) -> some View {
+        HStack(spacing: 14) {
+            Image(systemName: icon).foregroundStyle(BelozStyle.green).frame(width: 24)
+            Text(title).foregroundStyle(BelozStyle.ink)
+            Spacer()
+            Image(systemName: "arrow.right").foregroundStyle(BelozStyle.green)
+        }.frame(maxWidth: .infinity, minHeight: 56).contentShape(Rectangle())
     }
 }
 
@@ -251,22 +214,59 @@ private struct PaymentAvailabilityView: View {
 }
 
 private struct PrivacySummaryView: View {
+    @EnvironmentObject private var store: BelozStore
+    @State private var confirmDelete = false
+    @State private var error: String?
+
     var body: some View {
         ScreenBackdrop {
             List {
-                Section("Sesión") { Text("La sesión se guarda en el llavero de este dispositivo.") }
-                Section("Pedidos y chat") { Text("Los pedidos y mensajes enviados se procesan en el servidor configurado.") }
-                Section("Ubicación") { Text("El mapa muestra Reus y no solicita tu ubicación.") }
+                Section {
+                    NavigationLink("Gestión de cookies") {
+                        PrivacyDetailView(title: "Cookies", message: "Las solicitudes a la API usan una sesión temporal sin almacenamiento de cookies. Las imágenes remotas pueden depender de los servicios que las alojan.")
+                    }
+                    NavigationLink("Permisos y datos") {
+                        PrivacyDetailView(title: "Permisos y datos", message: "La sesión se guarda en el llavero del dispositivo. Los pedidos y mensajes enviados se procesan en el servidor configurado. El mapa muestra Reus y no solicita tu ubicación.")
+                    }
+                    NavigationLink("Política de privacidad") {
+                        PrivacyDetailView(title: "Política de privacidad", message: "La política completa de Beloz está pendiente de publicación. Antes de distribuir la aplicación debe revisarse junto con el tratamiento real de datos del servidor.")
+                    }
+                    if store.session != nil {
+                        Button("Eliminar cuenta", role: .destructive) { confirmDelete = true }
+                    }
+                }
             }.scrollContentBackground(.hidden)
         }
         .navigationTitle("Privacidad").navigationBarTitleDisplayMode(.inline)
+        .confirmationDialog("¿Eliminar la cuenta?", isPresented: $confirmDelete, titleVisibility: .visible) {
+            Button("Eliminar cuenta", role: .destructive) {
+                Task { do { try await store.deleteAccount() } catch { self.error = error.localizedDescription } }
+            }
+            Button("Cancelar", role: .cancel) { }
+        } message: { Text("La operación se enviará al servicio Beloz y no se puede deshacer.") }
+        .alert("Cuenta", isPresented: Binding(get: { error != nil }, set: { if !$0 { error = nil } })) {
+            Button("Aceptar", role: .cancel) { error = nil }
+        } message: { Text(error ?? "") }
+    }
+}
+
+private struct PrivacyDetailView: View {
+    let title: String
+    let message: String
+    var body: some View {
+        ScreenBackdrop {
+            ScrollView {
+                Text(message).font(.body).frame(maxWidth: .infinity, alignment: .leading).padding(20)
+            }
+        }
+        .navigationTitle(title).navigationBarTitleDisplayMode(.inline)
     }
 }
 
 struct AccountAuthSheet: View {
     @EnvironmentObject private var store: BelozStore
     @Environment(\.dismiss) private var dismiss
-    @State private var isRegister = false
+    @State private var isRegister: Bool
     @State private var name = ""
     @State private var surname = ""
     @State private var phone = ""
@@ -276,11 +276,18 @@ struct AccountAuthSheet: View {
     @State private var error: String?
     @State private var notice: String?
 
+    init(startInRegister: Bool = false) {
+        _isRegister = State(initialValue: startInRegister)
+    }
+
     var body: some View {
         NavigationStack {
             ScreenBackdrop {
                 ScrollView {
                     VStack(alignment: .leading, spacing: 14) {
+                        Image("BelozCourier").resizable().scaledToFit()
+                            .frame(maxWidth: .infinity).frame(height: 125)
+                            .accessibilityLabel("Beloz")
                         SectionTitle(title: isRegister ? "Crear cuenta" : "Bienvenido/a", subtitle: "Accede a tus pedidos y a tu perfil")
                         if isRegister {
                             input("Nombre", text: $name, icon: "person")
@@ -300,7 +307,7 @@ struct AccountAuthSheet: View {
                             Task { await submit() }
                         } label: {
                             HStack {
-                                if busy { ProgressView().tint(.white) }
+                                if busy { ProgressView().tint(BelozStyle.ink) }
                                 Text(isRegister ? "Crear cuenta" : "Iniciar sesión")
                             }
                             .frame(maxWidth: .infinity, minHeight: 50)

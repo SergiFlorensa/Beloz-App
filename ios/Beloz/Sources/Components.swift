@@ -1,16 +1,18 @@
 import SwiftUI
 
 enum BelozStyle {
-    static let canvas = Color(hex: 0xF5F7F4)
+    static let canvas = Color(hex: 0xF8FAF9)
     static let surface = Color.white
-    static let ink = Color(hex: 0x142820)
-    static let forest = Color(hex: 0x123C31)
-    static let green = Color(hex: 0x168B68)
-    static let mint = Color(hex: 0xD8F2E7)
-    static let lime = Color(hex: 0xC6E8A0)
-    static let gold = Color(hex: 0xF3B54A)
-    static let muted = Color(hex: 0x718078)
-    static let line = Color(hex: 0xE4EAE5)
+    static let ink = Color(hex: 0x17251F)
+    static let forest = Color(hex: 0x12372D)
+    static let green = Color(hex: 0x176447)
+    static let accent = Color(hex: 0x56E39F)
+    static let mint = Color(hex: 0xE5F4EC)
+    static let lime = Color(hex: 0x56E39F)
+    static let gold = Color(hex: 0xF7D560)
+    static let orange = Color(hex: 0xFFB24D)
+    static let muted = Color(hex: 0x52645A)
+    static let line = Color(hex: 0xDCE4DF)
     static let danger = Color(hex: 0xB83A3A)
 }
 
@@ -71,14 +73,14 @@ struct InlineNotice: View {
 }
 
 struct PrimaryButtonStyle: ButtonStyle {
-    var fill: Color = BelozStyle.forest
+    var fill: Color = BelozStyle.accent
     func makeBody(configuration: Configuration) -> some View {
         configuration.label
             .font(.system(size: 15, weight: .semibold, design: .rounded))
-            .foregroundStyle(.white)
+            .foregroundStyle(BelozStyle.ink)
             .padding(.horizontal, 18)
             .frame(minHeight: 48)
-            .background(fill.opacity(configuration.isPressed ? 0.82 : 1), in: Capsule())
+            .background(fill.opacity(configuration.isPressed ? 0.82 : 1), in: RoundedRectangle(cornerRadius: 18))
             .scaleEffect(configuration.isPressed ? 0.98 : 1)
     }
 }
@@ -91,11 +93,11 @@ struct FilterChip: View {
         Button(action: action) {
             Text(title)
                 .font(.system(size: 13, weight: .semibold))
-                .foregroundStyle(selected ? BelozStyle.forest : BelozStyle.muted)
+                .foregroundStyle(selected ? BelozStyle.ink : BelozStyle.muted)
                 .padding(.horizontal, 14)
                 .frame(minHeight: 38)
-                .background(selected ? BelozStyle.mint : .white, in: Capsule())
-                .overlay(Capsule().stroke(selected ? BelozStyle.green.opacity(0.35) : BelozStyle.line, lineWidth: 1))
+                .background(selected ? Color(hex: 0xE8DEF8) : .clear, in: RoundedRectangle(cornerRadius: 8))
+                .overlay(RoundedRectangle(cornerRadius: 8).stroke(selected ? .clear : BelozStyle.muted.opacity(0.7), lineWidth: 1))
         }
         .buttonStyle(.plain)
     }
@@ -105,11 +107,19 @@ struct RemoteFoodImage: View {
     let path: String?
     var height: CGFloat
     var body: some View {
-        AsyncImage(url: BelozAPI.imageURL(path)) { phase in
-            switch phase {
-            case .success(let image): image.resizable().scaledToFill()
-            case .empty, .failure: placeholder
-            @unknown default: placeholder
+        Group {
+            if let url = BelozAPI.imageURL(path) {
+                AsyncImage(url: url) { phase in
+                    switch phase {
+                    case .success(let image): image.resizable().scaledToFill()
+                    case .empty:
+                        ZStack { BelozStyle.canvas; ProgressView().tint(BelozStyle.green) }
+                    case .failure: placeholder
+                    @unknown default: placeholder
+                    }
+                }
+            } else {
+                placeholder
             }
         }
         .frame(maxWidth: .infinity)
@@ -120,10 +130,8 @@ struct RemoteFoodImage: View {
 
     private var placeholder: some View {
         ZStack {
-            Color(hex: 0xE7F1E9)
-            Image(systemName: "fork.knife.circle.fill")
-                .font(.system(size: 34, weight: .light))
-                .foregroundStyle(BelozStyle.green.opacity(0.8))
+            BelozStyle.canvas
+            Text("Sin foto").font(.caption).foregroundStyle(BelozStyle.muted)
         }
         .frame(maxWidth: .infinity)
         .frame(height: height)
@@ -135,25 +143,21 @@ struct RestaurantRow: View {
     var compact = false
     var body: some View {
         HStack(spacing: 14) {
-            RemoteFoodImage(path: restaurant.imagePath, height: compact ? 80 : 94)
-                .frame(width: compact ? 88 : 104)
-                .clipShape(RoundedRectangle(cornerRadius: 15))
+            RemoteFoodImage(path: restaurant.imagePath, height: compact ? 60 : 88)
+                .frame(width: compact ? 60 : 88)
+                .clipShape(RoundedRectangle(cornerRadius: 6))
             VStack(alignment: .leading, spacing: 6) {
-                Text(restaurant.name).font(.system(size: 17, weight: .bold, design: .rounded)).lineLimit(1)
-                Text(restaurant.foodType.isEmpty ? "Restaurante" : restaurant.foodType)
-                    .font(.subheadline).foregroundStyle(BelozStyle.muted).lineLimit(1)
+                Text(restaurant.name).font(.system(size: 16, weight: .semibold)).lineLimit(3)
+                Text([restaurant.foodType, restaurant.country].filter { !$0.isEmpty }.joined(separator: " · "))
+                    .font(.caption).foregroundStyle(BelozStyle.muted).lineLimit(2)
                 HStack(spacing: 12) {
                     if restaurant.rating > 0 {
                         Label(String(format: "%.1f", restaurant.rating), systemImage: "star.fill")
                             .foregroundStyle(BelozStyle.ink)
                     }
-                    if restaurant.waitTime > 0 {
-                        Label("\(restaurant.waitTime) min", systemImage: "clock")
-                            .foregroundStyle(BelozStyle.muted)
-                    }
-                    if !restaurant.priceLevel.isEmpty {
-                        Text(restaurant.priceLevel).foregroundStyle(BelozStyle.muted)
-                    }
+                    Text(BelozDiscovery.priceLabel(restaurant.priceLevel)).foregroundStyle(BelozStyle.muted)
+                    Text(restaurant.waitTime > 0 ? "~\(restaurant.waitTime) min" : "Espera sin indicar")
+                        .foregroundStyle(BelozStyle.muted)
                 }
                 .font(.caption.weight(.medium))
             }
@@ -161,9 +165,9 @@ struct RestaurantRow: View {
             Image(systemName: "chevron.right").font(.caption.weight(.bold)).foregroundStyle(BelozStyle.green)
         }
         .padding(12)
-        .background(.white, in: RoundedRectangle(cornerRadius: 18))
-        .overlay(RoundedRectangle(cornerRadius: 18).stroke(BelozStyle.line, lineWidth: 1))
-        .contentShape(RoundedRectangle(cornerRadius: 18))
+        .background(.white, in: RoundedRectangle(cornerRadius: 8))
+        .overlay(RoundedRectangle(cornerRadius: 8).stroke(BelozStyle.line, lineWidth: 1))
+        .contentShape(RoundedRectangle(cornerRadius: 8))
     }
 }
 
@@ -171,41 +175,67 @@ struct DishRow: View {
     @EnvironmentObject private var store: BelozStore
     let dish: Dish
     @State private var showReplaceCart = false
-    @State private var added = false
+    @State private var showDetails = false
+
+    private var validPrice: Bool { dish.price.isFinite && dish.price > 0 }
+    private var quantity: Int { store.cart.first(where: { $0.dish.id == dish.id })?.quantity ?? 0 }
 
     var body: some View {
-        HStack(spacing: 13) {
-            if dish.imagePath != nil {
-                RemoteFoodImage(path: dish.imagePath, height: 76)
-                    .frame(width: 82)
-                    .clipShape(RoundedRectangle(cornerRadius: 14))
+        VStack(alignment: .leading, spacing: 8) {
+            Button { showDetails = true } label: {
+                HStack(alignment: .top, spacing: 12) {
+                    VStack(alignment: .leading, spacing: 5) {
+                        Text(dish.name).font(.system(size: 16, weight: .semibold)).foregroundStyle(BelozStyle.ink)
+                        if !dish.details.isEmpty {
+                            Text(dish.details).font(.caption).foregroundStyle(BelozStyle.muted).lineLimit(3)
+                        }
+                    }.frame(maxWidth: .infinity, alignment: .leading)
+                    RemoteFoodImage(path: dish.imagePath, height: 84).frame(width: 84)
+                        .clipShape(RoundedRectangle(cornerRadius: 6))
+                }.contentShape(Rectangle())
             }
-            VStack(alignment: .leading, spacing: 5) {
-                Text(dish.name).font(.system(size: 16, weight: .semibold, design: .rounded))
-                if !dish.details.isEmpty {
-                    Text(dish.details).font(.subheadline).foregroundStyle(BelozStyle.muted).lineLimit(2)
+            .buttonStyle(.plain).accessibilityLabel("Ver detalle de \(dish.name)")
+            HStack(spacing: 8) {
+                VStack(alignment: .leading, spacing: 3) {
+                    Text(validPrice ? dish.price.euro : "Precio no disponible")
+                        .font(.subheadline.weight(.semibold)).foregroundStyle(BelozStyle.ink)
+                    if quantity > 0 { Text("\(quantity) en carrito").font(.caption).foregroundStyle(BelozStyle.green) }
                 }
-                Text(dish.price.euro).font(.subheadline.weight(.bold)).foregroundStyle(BelozStyle.forest).padding(.top, 2)
+                Spacer()
+                Button {
+                    if !store.addToCart(dish) { showReplaceCart = true }
+                } label: {
+                    Label("Añadir", systemImage: "plus")
+                        .font(.subheadline.weight(.semibold)).foregroundStyle(BelozStyle.ink)
+                        .padding(.horizontal, 12).frame(minHeight: 48)
+                        .background(BelozStyle.mint, in: RoundedRectangle(cornerRadius: 8))
+                }
+                .disabled(!validPrice || quantity >= 99)
+                .accessibilityLabel("Añadir \(dish.name) al carrito")
             }
-            Spacer(minLength: 4)
-            Button {
-                if !store.addToCart(dish) { showReplaceCart = true }
-                else { added = true; DispatchQueue.main.asyncAfter(deadline: .now() + 1.1) { added = false } }
-            } label: {
-                Image(systemName: added ? "checkmark" : "plus")
-                    .font(.system(size: 15, weight: .bold))
-                    .foregroundStyle(.white)
-                    .frame(width: 38, height: 38)
-                    .background(added ? BelozStyle.green : BelozStyle.forest, in: Circle())
-            }
-            .buttonStyle(.plain)
-            .accessibilityLabel("Añadir \(dish.name) al carrito")
         }
-        .padding(.vertical, 10)
+        .padding(12).frame(maxWidth: .infinity, alignment: .leading)
+        .background(.white, in: RoundedRectangle(cornerRadius: 8))
+        .overlay(RoundedRectangle(cornerRadius: 8).stroke(BelozStyle.line, lineWidth: 1))
+        .sheet(isPresented: $showDetails) {
+            NavigationStack {
+                ScrollView {
+                    VStack(alignment: .leading, spacing: 12) {
+                        RemoteFoodImage(path: dish.imagePath, height: 170)
+                            .clipShape(RoundedRectangle(cornerRadius: 8))
+                        Text(dish.details.isEmpty ? "Descripción no disponible." : dish.details)
+                        Text("Información del catálogo. Confirma ingredientes y disponibilidad con el restaurante.")
+                            .font(.footnote).foregroundStyle(BelozStyle.muted)
+                    }.padding(18)
+                }
+                .background(BelozStyle.canvas)
+                .navigationTitle(dish.name).navigationBarTitleDisplayMode(.inline)
+                .toolbar { ToolbarItem(placement: .topBarTrailing) { Button("Cerrar") { showDetails = false } } }
+            }
+        }
         .alert("Tu carrito tiene platos de otro restaurante", isPresented: $showReplaceCart) {
             Button("Vaciar y añadir", role: .destructive) {
                 _ = store.addToCart(dish, replacingExisting: true)
-                added = true
             }
             Button("Cancelar", role: .cancel) { }
         } message: { Text("Solo puedes preparar un pedido de un restaurante cada vez.") }

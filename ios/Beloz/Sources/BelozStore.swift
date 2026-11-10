@@ -32,6 +32,7 @@ final class BelozStore: ObservableObject {
     var cartCount: Int { cart.reduce(0) { $0 + $1.quantity } }
     var cartTotal: Double { cart.reduce(0) { $0 + $1.lineTotal } }
     var cartRestaurantId: Int? { cart.first?.dish.restaurantId }
+    var cartHasInvalidPrice: Bool { cart.contains { !$0.dish.price.isFinite || $0.dish.price <= 0 } }
 
     func loadRestaurants() async {
         guard !isLoadingRestaurants else { return }
@@ -81,12 +82,14 @@ final class BelozStore: ObservableObject {
 
     @discardableResult
     func addToCart(_ dish: Dish, replacingExisting: Bool = false) -> Bool {
+        guard dish.price.isFinite, dish.price > 0 else { return false }
         if let owner = cartRestaurantId, owner != dish.restaurantId {
             guard replacingExisting else { return false }
             cart = []
         }
         if let index = cart.firstIndex(where: { $0.dish.id == dish.id }) {
-            cart[index].quantity += 1
+            cart[index].dish = dish
+            cart[index].quantity = min(cart[index].quantity + 1, 99)
         } else {
             cart.append(CartLine(dish: dish, quantity: 1))
         }
@@ -96,7 +99,7 @@ final class BelozStore: ObservableObject {
 
     func setQuantity(for dishId: Int, to quantity: Int) {
         if quantity <= 0 { cart.removeAll { $0.dish.id == dishId } }
-        else if let index = cart.firstIndex(where: { $0.dish.id == dishId }) { cart[index].quantity = quantity }
+        else if let index = cart.firstIndex(where: { $0.dish.id == dishId }) { cart[index].quantity = min(quantity, 99) }
         persistCart()
     }
 
@@ -195,6 +198,9 @@ final class BelozStore: ObservableObject {
         guard let user = session else { throw APIError.message("Inicia sesión para confirmar el pedido.") }
         guard let restaurantId = cartRestaurantId, !cart.isEmpty else {
             throw APIError.message("Añade algún plato antes de continuar.")
+        }
+        guard !cartHasInvalidPrice else {
+            throw APIError.message("Hay platos sin precio. Elimínalos y vuelve a añadirlos desde la carta.")
         }
         isSubmittingOrder = true
         defer { isSubmittingOrder = false }

@@ -19,6 +19,8 @@
 		100000000000000000000014 /* Discovery.swift in Sources */ = {isa = PBXBuildFile; fileRef = 200000000000000000000014 /* Discovery.swift */; };
 		100000000000000000000015 /* HomeExperience.swift in Sources */ = {isa = PBXBuildFile; fileRef = 200000000000000000000015 /* HomeExperience.swift */; };
 		100000000000000000000016 /* OrdersView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 200000000000000000000016 /* OrdersView.swift */; };
+		100000000000000000000017 /* CuisinePickerView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 200000000000000000000017 /* CuisinePickerView.swift */; };
+		100000000000000000000018 /* vintage.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 200000000000000000000018 /* vintage.ttf */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -38,6 +40,8 @@
 		200000000000000000000014 /* Discovery.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Discovery.swift; sourceTree = "<group>"; };
 		200000000000000000000015 /* HomeExperience.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HomeExperience.swift; sourceTree = "<group>"; };
 		200000000000000000000016 /* OrdersView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OrdersView.swift; sourceTree = "<group>"; };
+		200000000000000000000017 /* CuisinePickerView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CuisinePickerView.swift; sourceTree = "<group>"; };
+		200000000000000000000018 /* vintage.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; path = vintage.ttf; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -64,10 +68,12 @@
 			200000000000000000000014 /* Discovery.swift */,
 			200000000000000000000015 /* HomeExperience.swift */,
 			200000000000000000000016 /* OrdersView.swift */,
+			200000000000000000000017 /* CuisinePickerView.swift */,
 		); };
 		400000000000000000000003 /* Resources */ = {isa = PBXGroup; path = Resources; sourceTree = "<group>"; children = (
 			200000000000000000000010 /* Assets.xcassets */,
 			200000000000000000000013 /* PrivacyInfo.xcprivacy */,
+			200000000000000000000018 /* vintage.ttf */,
 		); };
 		400000000000000000000004 /* Config */ = {isa = PBXGroup; path = Config; sourceTree = "<group>"; children = (
 			200000000000000000000011 /* Shared.xcconfig */,
@@ -99,6 +105,7 @@
 			100000000000000000000014 /* Discovery.swift in Sources */,
 			100000000000000000000015 /* HomeExperience.swift in Sources */,
 			100000000000000000000016 /* OrdersView.swift in Sources */,
+			100000000000000000000017 /* CuisinePickerView.swift in Sources */,
 		); runOnlyForDeploymentPostprocessing = 0; };
 /* End PBXSourcesBuildPhase section */
 
@@ -106,6 +113,7 @@
 		600000000000000000000002 /* Resources */ = {isa = PBXResourcesBuildPhase; buildActionMask = 2147483647; files = (
 			100000000000000000000010 /* Assets.xcassets in Resources */,
 			100000000000000000000011 /* PrivacyInfo.xcprivacy in Resources */,
+			100000000000000000000018 /* vintage.ttf in Resources */,
 		); runOnlyForDeploymentPostprocessing = 0; };
 /* End PBXResourcesBuildPhase section */
 
@@ -125,9 +133,11 @@
 			SWIFT_VERSION = 5.0;
 		}; name = Release; };
 		800000000000000000000003 /* Debug app */ = {isa = XCBuildConfiguration; baseConfigurationReference = 200000000000000000000011 /* Shared.xcconfig */; buildSettings = {
+			ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 			ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 			CODE_SIGN_STYLE = Automatic;
 			GENERATE_INFOPLIST_FILE = YES;
+			INFOPLIST_FILE = Beloz/Resources/Info.plist;
 			INFOPLIST_KEY_BELOZ_API_BASE_URL = "$(BELOZ_API_BASE_URL)";
 			INFOPLIST_KEY_CFBundleDisplayName = Beloz;
 			INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
@@ -144,9 +154,11 @@
 			TARGETED_DEVICE_FAMILY = "1,2";
 		}; name = Debug; };
 		800000000000000000000004 /* Release app */ = {isa = XCBuildConfiguration; baseConfigurationReference = 200000000000000000000011 /* Shared.xcconfig */; buildSettings = {
+			ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 			ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 			CODE_SIGN_STYLE = Automatic;
 			GENERATE_INFOPLIST_FILE = YES;
+			INFOPLIST_FILE = Beloz/Resources/Info.plist;
 			INFOPLIST_KEY_BELOZ_API_BASE_URL = "$(BELOZ_API_BASE_URL)";
 			INFOPLIST_KEY_CFBundleDisplayName = Beloz;
 			INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;

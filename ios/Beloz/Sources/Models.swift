@@ -126,6 +126,7 @@ struct ChatSuggestion: Decodable, Identifiable {
     let waitTime: Int?
     let foodType: String?
     let reason: String?
+    let source: ChatSource?
 
     var id: String { "\(restaurantId)-\(dishName ?? restaurantName)" }
 
@@ -139,6 +140,7 @@ struct ChatSuggestion: Decodable, Identifiable {
         waitTime = values.first(Int.self, "wait_time", "waitTime")
         foodType = values.first(String.self, "type_of_food", "food_type")
         reason = values.first(String.self, "motivo", "reason")
+        source = values.first(ChatSource.self, "source", "fuente")
     }
 }
 

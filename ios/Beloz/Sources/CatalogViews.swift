@@ -116,15 +116,10 @@ struct RestaurantDetailView: View {
     @State private var isLoading = true
     @State private var error: String?
     @State private var showChat = false
+    @State private var selectedSection: String?
 
-    private var categories: [String] {
-        let found = Set(dishes.map { $0.category.isEmpty ? "Carta" : $0.category })
-        return found.sorted { lhs, rhs in
-            if lhs == "Carta" { return false }
-            if rhs == "Carta" { return true }
-            return lhs.localizedCaseInsensitiveCompare(rhs) == .orderedAscending
-        }
-    }
+    private var sections: [MenuSection] { BelozDiscovery.menuSections(dishes) }
+    private var activeSection: MenuSection? { sections.first { $0.id == selectedSection } ?? sections.first }
 
     var body: some View {
         ScreenBackdrop {
@@ -163,21 +158,37 @@ struct RestaurantDetailView: View {
                         Button("Reintentar") { Task { await loadMenu() } }.buttonStyle(PrimaryButtonStyle())
                     } else if dishes.isEmpty {
                         InlineNotice(text: "Este restaurante todavía no tiene platos publicados en el catálogo.")
-                    } else {
-                        ForEach(categories, id: \.self) { category in
-                            VStack(alignment: .leading, spacing: 9) {
-                                SectionTitle(title: category)
-                                VStack(spacing: 0) {
-                                    ForEach(dishes.filter { ($0.category.isEmpty ? "Carta" : $0.category) == category }) { dish in
-                                        DishRow(dish: dish)
-                                        if dish.id != dishes.filter({ ($0.category.isEmpty ? "Carta" : $0.category) == category }).last?.id {
-                                            Divider().overlay(BelozStyle.line)
+                    } else if let activeSection {
+                        ScrollView(.horizontal, showsIndicators: false) {
+                            HStack(spacing: 8) {
+                                ForEach(sections) { section in
+                                    Button { selectedSection = section.id } label: {
+                                        HStack(spacing: 9) {
+                                            Circle().fill(section.id == activeSection.id ? BelozStyle.accent : BelozStyle.orange)
+                                                .frame(width: 8, height: 8)
+                                            VStack(alignment: .leading, spacing: 2) {
+                                                Text(section.title).font(.system(size: 13, weight: .bold)).lineLimit(2)
+                                                Text("\(section.dishes.count) platos").font(.system(size: 11))
+                                            }
                                         }
+                                        .foregroundStyle(section.id == activeSection.id ? .white : BelozStyle.ink)
+                                        .padding(.horizontal, 14).frame(minWidth: 92, minHeight: 48)
+                                        .background(section.id == activeSection.id ? BelozStyle.green : .white,
+                                                    in: RoundedRectangle(cornerRadius: 8))
                                     }
+                                    .buttonStyle(.plain)
+                                    .accessibilityAddTraits(section.id == activeSection.id ? .isSelected : [])
                                 }
-                                .padding(.horizontal, 13)
-                                .background(.white, in: RoundedRectangle(cornerRadius: 18))
-                                .overlay(RoundedRectangle(cornerRadius: 18).stroke(BelozStyle.line, lineWidth: 1))
+                            }
+                        }
+                        HStack {
+                            Text(activeSection.title).font(.title3.weight(.bold))
+                            Spacer()
+                            Text("\(activeSection.dishes.count)").font(.subheadline).foregroundStyle(BelozStyle.muted)
+                        }
+                        LazyVStack(spacing: 8) {
+                            ForEach(activeSection.dishes) { dish in
+                                DishRow(dish: dish)
                             }
                         }
                     }

@@ -34,38 +34,10 @@ struct HomeView: View {
 
     var body: some View {
         ScreenBackdrop {
-            ScrollView(showsIndicators: false) {
-                VStack(alignment: .leading, spacing: 18) {
-                    HStack(spacing: 10) {
-                        Button { sheet = .menu } label: {
-                            Image(systemName: "line.3.horizontal")
-                                .font(.system(size: 19, weight: .semibold))
-                                .frame(width: 46, height: 46)
-                                .background(.white, in: RoundedRectangle(cornerRadius: 8))
-                        }
-                        .accessibilityLabel("Abrir menú")
-                        HStack(spacing: 8) {
-                            Image(systemName: "magnifyingglass").foregroundStyle(BelozStyle.green)
-                            TextField("Buscar restaurante o comida", text: $query)
-                                .textInputAutocapitalization(.never).autocorrectionDisabled()
-                                .submitLabel(.search)
-                                .onSubmit { destination = .catalog(CatalogFilter(), query) }
-                            if !query.isEmpty {
-                                Button { query = "" } label: { Image(systemName: "xmark.circle.fill") }
-                                    .accessibilityLabel("Borrar búsqueda")
-                            }
-                        }
-                        .padding(.horizontal, 12).frame(height: 46)
-                        .background(.white, in: RoundedRectangle(cornerRadius: 8))
-                        Button { destination = .map } label: {
-                            Image(systemName: "map")
-                                .font(.system(size: 18, weight: .semibold)).frame(width: 46, height: 46)
-                                .background(.white, in: RoundedRectangle(cornerRadius: 8))
-                        }
-                        .accessibilityLabel("Abrir mapa de Reus")
-                    }
-                    .foregroundStyle(BelozStyle.ink)
-
+            VStack(spacing: 0) {
+                homeHeader
+                ScrollView(showsIndicators: false) {
+                    VStack(alignment: .leading, spacing: 18) {
                     if !BelozDiscovery.normalize(query).isEmpty {
                         VStack(alignment: .leading, spacing: 0) {
                             if searchMatches.isEmpty {
@@ -90,35 +62,26 @@ struct HomeView: View {
                         .background(.white, in: RoundedRectangle(cornerRadius: 8))
                     }
 
-                    VStack(alignment: .leading, spacing: 5) {
-                        Eyebrow(text: "Beloz / Reus")
-                        Text("Hoy, ¿qué te apetece?")
-                            .font(.system(size: 29, weight: .bold, design: .rounded))
-                            .foregroundStyle(BelozStyle.ink)
+                    HStack(alignment: .center, spacing: 10) {
+                        VStack(alignment: .leading, spacing: 5) {
+                            Eyebrow(text: "Beloz / Reus")
+                            Text("Hoy, ¿qué te apetece?")
+                                .font(.system(size: 26, weight: .bold))
+                                .foregroundStyle(BelozStyle.ink)
+                        }.frame(maxWidth: .infinity, alignment: .leading)
+                        Image("BelozLogo").resizable().scaledToFit()
+                            .frame(width: 48, height: 48).clipShape(RoundedRectangle(cornerRadius: 8))
+                            .accessibilityHidden(true)
                     }
 
                     HStack(spacing: 8) {
-                        homeFilter("Comida", icon: "fork.knife", target: .cuisine)
-                        homeFilter("Precio", icon: "eurosign", target: .price)
-                        homeFilter("Ordenar", icon: "arrow.up.arrow.down", target: .sort)
+                        homeFilter("Comida", target: .cuisine)
+                        homeFilter("Precio", target: .price)
+                        homeFilter("Ordenar", target: .sort)
                     }
 
-                    Button { destination = .chat(nil) } label: {
-                        HStack(spacing: 12) {
-                            Image(systemName: "sparkles").font(.title3).foregroundStyle(BelozStyle.lime)
-                            VStack(alignment: .leading, spacing: 3) {
-                                Text("Beloz AI").font(.headline).foregroundStyle(.white)
-                                Text("Encuentra algo para ti").font(.subheadline).foregroundStyle(.white.opacity(0.8))
-                            }
-                            Spacer()
-                            Image(systemName: "arrow.right").foregroundStyle(.white)
-                        }
-                        .padding(16).frame(maxWidth: .infinity, alignment: .leading)
-                        .background(BelozStyle.forest, in: RoundedRectangle(cornerRadius: 8))
-                    }.buttonStyle(.plain)
-
                     Text("Tres opciones. Tú eliges.")
-                        .font(.system(size: 21, weight: .bold, design: .rounded))
+                        .font(.system(size: 21, weight: .bold))
                     ScrollView(.horizontal, showsIndicators: false) {
                         HStack(spacing: 8) {
                             ForEach(DecisionMode.allCases) { item in
@@ -136,10 +99,7 @@ struct HomeView: View {
                     } else {
                         ForEach(choices) { choice in
                             NavigationLink(destination: RestaurantDetailView(restaurant: choice.restaurant)) {
-                                VStack(alignment: .leading, spacing: 4) {
-                                    RestaurantRow(restaurant: choice.restaurant, compact: true)
-                                    Text(choice.reason).font(.caption).foregroundStyle(BelozStyle.muted).padding(.horizontal, 4)
-                                }
+                                HomeChoiceCard(choice: choice, featured: choice.id == choices.first?.id)
                             }.buttonStyle(.plain)
                         }
                         HStack {
@@ -174,10 +134,12 @@ struct HomeView: View {
                     }.buttonStyle(.plain)
                     NavigationLink("Explorar todos los restaurantes", destination: CatalogView())
                         .font(.subheadline.weight(.semibold)).frame(maxWidth: .infinity).padding(.vertical, 8)
+                    }
+                    .padding(.horizontal, 16).padding(.top, 8).padding(.bottom, 24)
                 }
-                .padding(.horizontal, 18).padding(.top, 12).padding(.bottom, 24)
+                .refreshable { await store.loadRestaurants() }
             }
-            .refreshable { await store.loadRestaurants() }
+            .background(Color(hex: 0xF4FAF6))
         }
         .toolbar(.hidden, for: .navigationBar)
         .task { if store.restaurants.isEmpty { await store.loadRestaurants() } }
@@ -195,18 +157,50 @@ struct HomeView: View {
             if let pendingDestination { destination = pendingDestination; self.pendingDestination = nil }
         }) { active in
             sheetContent(active)
-                .presentationDetents([.medium, .large])
+                .presentationDetents(active == .cuisine ? [.large] : [.medium, .large])
                 .presentationDragIndicator(.visible)
         }
     }
 
-    private func homeFilter(_ title: String, icon: String, target: HomeSheet) -> some View {
+    private var homeHeader: some View {
+        HStack(spacing: 6) {
+            Button { sheet = .menu } label: {
+                Image(systemName: "line.3.horizontal")
+                    .font(.system(size: 19, weight: .semibold)).frame(width: 46, height: 46)
+                    .background(.white, in: RoundedRectangle(cornerRadius: 18))
+            }.accessibilityLabel("Abrir menú")
+            HStack(spacing: 8) {
+                Image(systemName: "magnifyingglass").foregroundStyle(BelozStyle.green)
+                TextField("Buscar restaurante o comida", text: $query)
+                    .textInputAutocapitalization(.never).autocorrectionDisabled()
+                    .submitLabel(.search).onSubmit { destination = .catalog(CatalogFilter(), query) }
+                if !query.isEmpty {
+                    Button { query = "" } label: { Image(systemName: "xmark.circle.fill") }
+                        .accessibilityLabel("Borrar búsqueda")
+                }
+            }
+            .padding(.horizontal, 12).frame(height: 46)
+            .background(.white, in: RoundedRectangle(cornerRadius: 8))
+            Button { destination = .map } label: {
+                Image(systemName: "location.fill")
+                    .font(.system(size: 18, weight: .semibold)).frame(width: 46, height: 46)
+                    .background(.white, in: RoundedRectangle(cornerRadius: 18))
+            }.accessibilityLabel("Abrir mapa de Reus")
+        }
+        .foregroundStyle(BelozStyle.ink)
+        .padding(.horizontal, 12).padding(.top, 12).padding(.bottom, 10)
+        .background(Color(hex: 0xF4FAF6))
+    }
+
+    private func homeFilter(_ title: String, target: HomeSheet) -> some View {
         Button { sheet = target } label: {
-            Label(title, systemImage: icon).font(.system(size: 13, weight: .semibold))
-                .lineLimit(1).minimumScaleFactor(0.8)
-                .frame(maxWidth: .infinity, minHeight: 42)
-                .background(.white, in: RoundedRectangle(cornerRadius: 8))
-                .overlay(RoundedRectangle(cornerRadius: 8).stroke(BelozStyle.line, lineWidth: 1))
+            HStack(spacing: 6) {
+                Text(title).lineLimit(1)
+                Image(systemName: "chevron.down").font(.system(size: 11, weight: .semibold))
+            }
+            .font(.system(size: 14, weight: .medium)).foregroundStyle(.white)
+            .minimumScaleFactor(0.8).frame(maxWidth: .infinity, minHeight: 48)
+            .background(Color(hex: 0x245B4B), in: RoundedRectangle(cornerRadius: 18))
         }.buttonStyle(.plain)
     }
 
@@ -229,28 +223,9 @@ struct HomeView: View {
                 }
                 .navigationTitle("Tu Beloz").navigationBarTitleDisplayMode(.inline)
             case .cuisine:
-                List {
-                    ForEach(BelozDiscovery.cuisines, id: \.self) { cuisine in
-                        Button {
-                            if cuisines.contains(cuisine) { cuisines.remove(cuisine) }
-                            else { cuisines.insert(cuisine) }
-                        } label: {
-                            HStack {
-                                Text(cuisine).foregroundStyle(BelozStyle.ink)
-                                Spacer()
-                                if cuisines.contains(cuisine) { Image(systemName: "checkmark.circle.fill").foregroundStyle(BelozStyle.green) }
-                            }.frame(minHeight: 35).contentShape(Rectangle())
-                        }
-                        .buttonStyle(.plain)
-                        .accessibilityAddTraits(cuisines.contains(cuisine) ? .isSelected : [])
-                    }
-                }
-                .navigationTitle("Tipo de comida").navigationBarTitleDisplayMode(.inline)
-                .safeAreaInset(edge: .bottom) {
-                    Button("Ver restaurantes") {
-                        var filter = CatalogFilter(); filter.cuisines = cuisines
-                        openAfterSheet(.catalog(filter, ""))
-                    }.buttonStyle(PrimaryButtonStyle()).disabled(cuisines.isEmpty).padding()
+                CuisinePickerView(selection: $cuisines) { selected in
+                    var filter = CatalogFilter(); filter.cuisines = selected
+                    openAfterSheet(.catalog(filter, ""))
                 }
             case .price:
                 List {
@@ -316,8 +291,41 @@ struct HomeView: View {
 
     private func menuRow(_ title: String, icon: String, target: HomeDestination) -> some View {
         Button { openAfterSheet(target) } label: {
-            Label(title, systemImage: icon).foregroundStyle(BelozStyle.ink).frame(minHeight: 44)
+            HStack {
+                Label(title, systemImage: icon).foregroundStyle(BelozStyle.ink)
+                Spacer()
+                Image(systemName: "arrow.right").foregroundStyle(BelozStyle.green)
+            }.frame(minHeight: 44).contentShape(Rectangle())
         }
+    }
+}
+
+private struct HomeChoiceCard: View {
+    let choice: RestaurantChoice
+    let featured: Bool
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 0) {
+            if featured { RemoteFoodImage(path: choice.restaurant.imagePath, height: 140) }
+            HStack(spacing: 12) {
+                if !featured {
+                    RemoteFoodImage(path: choice.restaurant.imagePath, height: 60)
+                        .frame(width: 60).clipShape(RoundedRectangle(cornerRadius: 6))
+                }
+                VStack(alignment: .leading, spacing: 4) {
+                    Text(choice.restaurant.name).font(.system(size: 16, weight: .semibold)).foregroundStyle(BelozStyle.ink)
+                    Text(choice.reason).font(.caption).foregroundStyle(BelozStyle.muted).lineLimit(2)
+                    Text("\(BelozDiscovery.priceLabel(choice.restaurant.priceLevel)) · \(choice.restaurant.waitTime > 0 ? "~\(choice.restaurant.waitTime) min" : "Espera sin dato")")
+                        .font(.caption.weight(.medium)).foregroundStyle(BelozStyle.green)
+                }
+                Spacer(minLength: 0)
+                Image(systemName: "arrow.right").foregroundStyle(BelozStyle.green)
+            }.padding(16)
+        }
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .background(.white, in: RoundedRectangle(cornerRadius: 8))
+        .overlay(RoundedRectangle(cornerRadius: 8).stroke(BelozStyle.line, lineWidth: 1))
+        .clipShape(RoundedRectangle(cornerRadius: 8))
     }
 }
 

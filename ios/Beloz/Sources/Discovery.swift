@@ -38,8 +38,32 @@ struct RestaurantChoice: Identifiable {
     var id: Int { restaurant.id }
 }
 
+struct MenuSection: Identifiable {
+    let id: String
+    let title: String
+    var dishes: [Dish]
+}
+
 enum BelozDiscovery {
     static let cuisines = ["Pizza", "Kebab", "Ramen", "Nachos", "Americana", "Arabe", "Sushi", "India", "Poke", "Peruana", "Hamburguesas"]
+
+    static func menuSections(_ dishes: [Dish]) -> [MenuSection] {
+        var sections: [MenuSection] = []
+        var indexes: [String: Int] = [:]
+        var seen = Set<Int>()
+        for dish in dishes where seen.insert(dish.id).inserted {
+            let trimmed = dish.category.trimmingCharacters(in: .whitespacesAndNewlines)
+            let title = trimmed.isEmpty ? "Carta" : trimmed
+            let key = normalize(title)
+            if let index = indexes[key] {
+                sections[index].dishes.append(dish)
+            } else {
+                indexes[key] = sections.count
+                sections.append(MenuSection(id: key, title: title, dishes: [dish]))
+            }
+        }
+        return sections
+    }
 
     static func normalize(_ value: String) -> String {
         value.folding(options: [.diacriticInsensitive, .caseInsensitive], locale: Locale(identifier: "es_ES"))

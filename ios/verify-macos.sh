@@ -11,6 +11,7 @@ xcodebuild -version
 xcrun --sdk iphonesimulator --show-sdk-path
 plutil -lint Beloz.xcodeproj/project.pbxproj
 plutil -lint Beloz/Resources/PrivacyInfo.xcprivacy
+plutil -lint Beloz/Resources/Info.plist
 
 test_dir="$(mktemp -d "${TMPDIR:-/tmp}/beloz-contract-tests.XXXXXX")"
 trap 'rm -rf "$test_dir"' EXIT

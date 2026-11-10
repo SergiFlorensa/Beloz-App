@@ -47,9 +47,24 @@ struct ContractTests {
         let detailJSON = #"{"id_detalle":1,"plato_nombre":"Plato","cantidad":2,"precio":"5.50"}"#
         let detail = try decoder.decode(OrderDetail.self, from: Data(detailJSON.utf8))
         expect(detail.price == 5.5 && detail.quantity == 2, "Order details must preserve numeric strings")
+        let menuJSON = #"""
+        [
+          {"id":1,"name":"Uno","price":"5.50","restaurante_id":1,"category":"Entrantes"},
+          {"id":2,"name":"Dos","price":6,"restaurante_id":1,"category":"RAMEN"},
+          {"id":3,"name":"Tres","price":7,"restaurante_id":1,"category":"entrantes"},
+          {"id":3,"name":"Tres duplicado","price":7,"restaurante_id":1,"category":"entrantes"}
+        ]
+        """#
+        let menu = try decoder.decode([Dish].self, from: Data(menuJSON.utf8))
+        let sections = BelozDiscovery.menuSections(menu)
+        expect(sections.map(\.title) == ["Entrantes", "RAMEN"], "Sections should preserve catalogue order")
+        expect(sections[0].dishes.map(\.id) == [1, 3], "Sections should merge labels and remove duplicate dishes")
         let request = ChatRequest(message: "hola", history: [], profile: nil)
         let requestJSON = String(decoding: try JSONEncoder().encode(request), as: UTF8.self)
         expect(!requestJSON.contains("perfil_sabor"), "Taste profile must be absent without consent")
+        let suggestionJSON = #"{"restaurante_id":1,"restaurante_nombre":"Restaurante","precio":"6.25","source":{"label":"Carta","url":"https://example.org"}}"#
+        let suggestion = try decoder.decode(ChatSuggestion.self, from: Data(suggestionJSON.utf8))
+        expect(suggestion.price == 6.25 && suggestion.source?.label == "Carta", "Suggestions should preserve prices and source metadata")
         print("Beloz iOS contract tests passed")
     }
 }

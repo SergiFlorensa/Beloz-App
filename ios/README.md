@@ -11,7 +11,7 @@ Proyecto nativo SwiftUI que consume el mismo servicio y catálogo que la app And
 
 El host de desarrollo actual es Windows, por lo que aquí no se puede ejecutar Xcode, compilar el binario iOS, firmarlo ni lanzarlo en un simulador. La validación final del proyecto debe hacerse desde macOS.
 
-El paquete está preparado para pruebas en simulador, no es todavía un envío a App Store: antes de distribuirlo añade el icono final de 1024×1024, revisa la ficha de privacidad con las prácticas reales del backend y configura la firma de distribución.
+El paquete incluye el icono original de Android en 1024×1024 y la fuente de la portada existente en ese proyecto. Antes de distribuirlo, comprueba los derechos de uso de los recursos y la fuente, revisa la ficha de privacidad con las prácticas reales del backend y configura la firma de distribución.
 
 ## Configurar otro backend
 
@@ -22,9 +22,10 @@ La app exige HTTPS también en Debug, sin excepciones ATS. Para probar un backen
 ## Funciones incluidas
 
 - Inicio con menú, búsqueda por prefijo, filtros, tres recomendaciones comparables y restaurantes destacados.
+- Portada, icono, imágenes de los tipos de comida y animación de selección adaptados de los recursos de Android. La animación respeta «Reducir movimiento» de iOS.
 - Filtros por varios tipos de cocina, precio orientativo y orden por nombre o espera.
 - Mapa centrado en Reus, sin acceso a la ubicación personal ni marcadores de restaurantes inventados.
-- Carta remota agrupada por categoría e imágenes de platos, con cesta persistente en el dispositivo.
+- Carta remota con selector de categorías, detalle e imágenes de platos y cesta persistente en el dispositivo. Las categorías dependen de los datos recibidos del servidor.
 - Chat Beloz AI conectado a `/api/chat`, historial breve durante la sesión, sugerencias y fuentes devueltas por el servicio.
 - Registro, inicio/cierre de sesión, cambios de correo, teléfono y contraseña, eliminación de cuenta e historial y detalles de pedidos.
 - Gustos opcionales: con consentimiento se guardan localmente los tipos de cocina visitados y el chat recibe un resumen; al desactivarlo se borra el historial.
@@ -39,6 +40,7 @@ La app exige HTTPS también en Debug, sin excepciones ATS. Para probar un backen
 - Imágenes relativas se resuelven contra el backend y las URL absolutas solo se cargan con HTTPS.
 - No se solicitaron permisos de ubicación, contactos, cámara ni fotos.
 - El mapa solo señala Reus: el catálogo no proporciona coordenadas verificadas de restaurantes. Pagos con tarjeta, notificaciones push y seguimiento en tiempo real no están disponibles en esta versión.
+- No se ha replicado el diálogo de recuperación de contraseña de Android porque el servidor actual no proporciona un servicio de recuperación verificado. Tampoco se ha añadido un interruptor de cookies que no controle realmente ningún servicio.
 
 ## Lista de prueba en Xcode
 
